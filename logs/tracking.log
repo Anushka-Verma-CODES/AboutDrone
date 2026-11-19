@@ -1,0 +1,45 @@
+{'video': 'video01', 'frames': 1050, 'visible': 1050, 'success@0.5': 0.6942857142857143, 'tracks': 5}
+{'video': 'video02', 'frames': 83, 'visible': 83, 'success@0.5': 0.9397590361445783, 'tracks': 1}
+{'video': 'video03', 'frames': 100, 'visible': 100, 'success@0.5': 0.4, 'tracks': 1}
+{'video': 'video04', 'frames': 341, 'visible': 341, 'success@0.5': 0.5513196480938416, 'tracks': 2}
+{'video': 'video05', 'frames': 450, 'visible': 450, 'success@0.5': 0.9555555555555556, 'tracks': 4}
+{'video': 'video06', 'frames': 200, 'visible': 200, 'success@0.5': 0.985, 'tracks': 1}
+{'video': 'video07', 'frames': 2480, 'visible': 1827, 'success@0.5': 0.9562123700054734, 'tracks': 27}
+{'video': 'video08', 'frames': 2305, 'visible': 2072, 'success@0.5': 0.9686293436293436, 'tracks': 33}
+{'video': 'video09', 'frames': 2500, 'visible': 1562, 'success@0.5': 0.9974391805377721, 'tracks': 4}
+{'video': 'video10', 'frames': 2635, 'visible': 2307, 'success@0.5': 0.9960988296488946, 'tracks': 3}
+{'video': 'video11', 'frames': 1000, 'visible': 998, 'success@0.5': 1.0, 'tracks': 1}
+{'video': 'video12', 'frames': 1485, 'visible': 1338, 'success@0.5': 0.8938714499252616, 'tracks': 5}
+{'video': 'video13', 'frames': 1915, 'visible': 1914, 'success@0.5': 0.9022988505747126, 'tracks': 1}
+{'video': 'video14', 'frames': 590, 'visible': 590, 'success@0.5': 0.9966101694915255, 'tracks': 2}
+{'video': 'video15', 'frames': 1350, 'visible': 1105, 'success@0.5': 0.9502262443438914, 'tracks': 7}
+{'video': 'video16', 'frames': 1285, 'visible': 1285, 'success@0.5': 0.6972762645914397, 'tracks': 11}
+{'video': 'video17', 'frames': 780, 'visible': 780, 'success@0.5': 0.7743589743589744, 'tracks': 33}
+{'video': 'video18', 'frames': 1320, 'visible': 1281, 'success@0.5': 0.9359875097580016, 'tracks': 2}
+{'video': 'video19', 'frames': 1300, 'visible': 1300, 'success@0.5': 0.8907692307692308, 'tracks': 4}
+{'video': 'video20', 'frames': 1635, 'visible': 1635, 'success@0.5': 0.9749235474006116, 'tracks': 4}
+          mota   motp   idf1  ...  visible  success@0.5  tracks
+video01  0.495  0.344  0.524  ...   1050.0        0.694     5.0
+video02  0.880  0.365  0.940  ...     83.0        0.940     1.0
+video03 -0.200  0.355  0.400  ...    100.0        0.400     1.0
+video04  0.126  0.330  0.401  ...    341.0        0.551     2.0
+video05  0.871  0.208  0.937  ...    450.0        0.956     4.0
+video06  0.970  0.300  0.985  ...    200.0        0.985     1.0
+video07  0.935  0.199  0.221  ...   1827.0        0.956    27.0
+video08  0.914  0.228  0.392  ...   2072.0        0.969    33.0
+video09  0.966  0.145  0.854  ...   1562.0        0.997     4.0
+video10  0.990  0.151  0.995  ...   2307.0        0.996     3.0
+video11  0.998  0.148  0.999  ...    998.0        1.000     1.0
+video12  0.833  0.326  0.533  ...   1338.0        0.894     5.0
+video13  0.804  0.342  0.902  ...   1914.0        0.902     1.0
+video14 -0.007  0.246  0.664  ...    590.0        0.997     2.0
+video15  0.930  0.270  0.543  ...   1105.0        0.950     7.0
+video16  0.661  0.295  0.171  ...   1285.0        0.697    11.0
+video17  0.610  0.318  0.314  ...    780.0        0.774    33.0
+video18  0.884  0.280  0.570  ...   1281.0        0.936     2.0
+video19  0.803  0.331  0.701  ...   1300.0        0.891     4.0
+video20  0.945  0.238  0.888  ...   1635.0        0.975     4.0
+OVERALL  0.825  0.246  0.648  ...      NaN          NaN     NaN
+
+[21 rows x 12 columns]
+real video windows: 1422

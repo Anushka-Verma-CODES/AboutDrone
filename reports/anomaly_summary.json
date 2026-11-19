@@ -1,0 +1,18 @@
+{
+  "selected_model": "isolation_forest",
+  "val_auprc": {
+    "isolation_forest": 0.5189004227886173,
+    "one_class_svm": 0.4710783130666403,
+    "lstm_autoencoder": 0.4476845615983693,
+    "ensemble": 0.49326603020303006
+  },
+  "thresholds": {
+    "isolation_forest": 0.5398266381160678,
+    "one_class_svm": 13.977152101686102,
+    "lstm_autoencoder": 0.5455095171928406,
+    "supervised_gbm": 0.7128911179455021,
+    "ensemble": 0.9783053268267348
+  },
+  "train_windows": 160000,
+  "train_normal_windows": 144741
+}

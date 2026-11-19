@@ -1,0 +1,32 @@
+{
+  "isolation_forest": {
+    "windows": 1422,
+    "flag_rate": 0.3241912798874824,
+    "tracks_flagged": 42,
+    "tracks": 50
+  },
+  "one_class_svm": {
+    "windows": 1422,
+    "flag_rate": 0.21237693389592124,
+    "tracks_flagged": 37,
+    "tracks": 50
+  },
+  "lstm_autoencoder": {
+    "windows": 1422,
+    "flag_rate": 0.19057665260196907,
+    "tracks_flagged": 33,
+    "tracks": 50
+  },
+  "supervised_gbm": {
+    "windows": 1422,
+    "flag_rate": 0.5295358649789029,
+    "tracks_flagged": 47,
+    "tracks": 50
+  },
+  "ensemble": {
+    "windows": 1422,
+    "flag_rate": 0.23066104078762306,
+    "tracks_flagged": 36,
+    "tracks": 50
+  }
+}

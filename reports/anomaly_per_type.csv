@@ -1,0 +1,61 @@
+test_set,model,type,rate,n
+synthetic,isolation_forest,circling,0.9596912521440824,1166
+synthetic,isolation_forest,dive,0.9887514060742407,889
+synthetic,isolation_forest,jump,0.9361702127659575,846
+synthetic,isolation_forest,normal (FPR),0.026567795646338967,43963
+synthetic,isolation_forest,reversal,0.8067444876783398,771
+synthetic,isolation_forest,speed_burst,0.9191489361702128,705
+synthetic,isolation_forest,zigzag,0.9758507135016465,911
+synthetic,one_class_svm,circling,0.9253859348198971,1166
+synthetic,one_class_svm,dive,0.983127109111361,889
+synthetic,one_class_svm,jump,0.933806146572104,846
+synthetic,one_class_svm,normal (FPR),0.02349703159475013,43963
+synthetic,one_class_svm,reversal,0.8028534370946823,771
+synthetic,one_class_svm,speed_burst,0.9134751773049645,705
+synthetic,one_class_svm,zigzag,0.9538968166849616,911
+synthetic,lstm_autoencoder,circling,0.9090909090909091,1166
+synthetic,lstm_autoencoder,dive,0.9640044994375703,889
+synthetic,lstm_autoencoder,jump,0.9184397163120568,846
+synthetic,lstm_autoencoder,normal (FPR),0.032481859745695243,43963
+synthetic,lstm_autoencoder,reversal,0.7821011673151751,771
+synthetic,lstm_autoencoder,speed_burst,0.8170212765957446,705
+synthetic,lstm_autoencoder,zigzag,0.964873765093304,911
+synthetic,supervised_gbm,circling,0.9845626072041166,1166
+synthetic,supervised_gbm,dive,0.9876265466816648,889
+synthetic,supervised_gbm,jump,0.9125295508274232,846
+synthetic,supervised_gbm,normal (FPR),0.013101926620112368,43963
+synthetic,supervised_gbm,reversal,0.8236057068741893,771
+synthetic,supervised_gbm,speed_burst,0.9716312056737588,705
+synthetic,supervised_gbm,zigzag,0.9813391877058177,911
+synthetic,ensemble,circling,0.951114922813036,1166
+synthetic,ensemble,dive,0.9876265466816648,889
+synthetic,ensemble,jump,0.9314420803782506,846
+synthetic,ensemble,normal (FPR),0.02831926847576371,43963
+synthetic,ensemble,reversal,0.7989623865110247,771
+synthetic,ensemble,speed_burst,0.873758865248227,705
+synthetic,ensemble,zigzag,0.9758507135016465,911
+telemetry,isolation_forest,Altitude,0.02511415525114155,876
+telemetry,isolation_forest,External Position,0.22719957081545064,3728
+telemetry,isolation_forest,Global Position,0.1673228346456693,508
+telemetry,isolation_forest,Mechanical,0.030973451327433628,678
+telemetry,isolation_forest,normal (FPR),0.011132140399174123,58120
+telemetry,one_class_svm,Altitude,0.003424657534246575,876
+telemetry,one_class_svm,External Position,0.20010729613733905,3728
+telemetry,one_class_svm,Global Position,0.1594488188976378,508
+telemetry,one_class_svm,Mechanical,0.017699115044247787,678
+telemetry,one_class_svm,normal (FPR),0.00538540949759119,58120
+telemetry,lstm_autoencoder,Altitude,0.0,876
+telemetry,lstm_autoencoder,External Position,0.15128755364806867,3728
+telemetry,lstm_autoencoder,Global Position,0.14566929133858267,508
+telemetry,lstm_autoencoder,Mechanical,0.02064896755162242,678
+telemetry,lstm_autoencoder,normal (FPR),0.0024260151410874053,58120
+telemetry,supervised_gbm,Altitude,0.07990867579908675,876
+telemetry,supervised_gbm,External Position,0.3873390557939914,3728
+telemetry,supervised_gbm,Global Position,0.29133858267716534,508
+telemetry,supervised_gbm,Mechanical,0.2610619469026549,678
+telemetry,supervised_gbm,normal (FPR),0.04755677907777013,58120
+telemetry,ensemble,Altitude,0.003424657534246575,876
+telemetry,ensemble,External Position,0.17060085836909872,3728
+telemetry,ensemble,Global Position,0.15354330708661418,508
+telemetry,ensemble,Mechanical,0.025073746312684365,678
+telemetry,ensemble,normal (FPR),0.003079834824501032,58120

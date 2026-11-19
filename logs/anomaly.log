@@ -1,0 +1,50 @@
+telemetry available: True
+train windows 160000  (normal 144741)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4096  val 0.2912
+  epoch   5  train 0.3156  val 0.2588
+  epoch  10  train 0.2585  val 0.2103
+  epoch  15  train 0.1846  val 0.1481
+  epoch  20  train 0.1628  val 0.1339
+  epoch  25  train 0.1520  val 0.1248
+  epoch  30  train 0.1469  val 0.1211
+  epoch  35  train 0.1426  val 0.1173
+  epoch  40  train 0.1416  val 0.1167
+fitting supervised reference
+     test_set             model  ...  precision_src_thr  recall_src_thr
+0   synthetic  isolation_forest  ...              0.859           0.907
+1   synthetic     one_class_svm  ...              0.883           0.877
+2   synthetic  lstm_autoencoder  ...              0.890           0.842
+3   synthetic    supervised_gbm  ...              0.952           0.912
+4   synthetic          ensemble  ...              0.888           0.889
+5   telemetry  isolation_forest  ...              0.253           0.684
+6   telemetry     one_class_svm  ...              0.091           1.000
+7   telemetry  lstm_autoencoder  ...              0.264           0.779
+8   telemetry    supervised_gbm  ...              0.276           0.505
+9   telemetry          ensemble  ...              0.274           0.698
+10   combined  isolation_forest  ...                NaN             NaN
+11   combined     one_class_svm  ...                NaN             NaN
+12   combined  lstm_autoencoder  ...                NaN             NaN
+13   combined    supervised_gbm  ...                NaN             NaN
+14   combined          ensemble  ...                NaN             NaN
+
+[15 rows x 11 columns]
+model                        ensemble  ...  supervised_gbm
+test_set  type                         ...                
+synthetic circling              0.951  ...           0.985
+          dive                  0.988  ...           0.988
+          jump                  0.931  ...           0.913
+          normal (FPR)          0.028  ...           0.013
+          reversal              0.799  ...           0.824
+          speed_burst           0.874  ...           0.972
+          zigzag                0.976  ...           0.981
+telemetry Altitude              0.003  ...           0.080
+          External Position     0.171  ...           0.387
+          Global Position       0.154  ...           0.291
+          Mechanical            0.025  ...           0.261
+          normal (FPR)          0.003  ...           0.048
+
+[12 rows x 5 columns]
+selected model (val AUPRC): isolation_forest {'isolation_forest': 0.519, 'one_class_svm': 0.471, 'lstm_autoencoder': 0.448, 'ensemble': 0.493}

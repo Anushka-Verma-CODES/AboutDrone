@@ -1,0 +1,12 @@
+[17:00:32] start
+[17:00:33] detector resume attempt 1
+[19:02:07] detector process exited with 1
+[19:02:27] classifier
+[19:03:47] classifier exit 1
+[19:03:47] tracking evaluation
+[19:04:30] tracking exit 1
+[19:04:30] anomaly training
+[19:07:51] anomaly exit 127
+[19:07:51] report
+[19:07:58] report exit 0
+[19:07:58] ALL DONE
