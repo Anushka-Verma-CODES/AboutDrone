@@ -98,14 +98,23 @@ class Percentile:
         return np.searchsorted(self.ref, s) / len(self.ref)
 
 
-def main(video_in_training=True):
-    """video_in_training=False is an ablation: real video tracks are left out
-    of training, results go to anomaly_metrics_no_video_train.csv and no
-    model or figure is overwritten."""
-    rng = np.random.default_rng(SEED)
+def main(video_in_training=True, seed=SEED, video=None, experiment=False):
+    """Train, evaluate and (by default) save the anomaly models.
+
+    video_in_training=False  ablation: real video tracks left out of training;
+                             results go to anomaly_metrics_no_video_train.csv.
+    seed                     random seed for sampling and all models.
+    video                    {"train","val","test"} window dicts that replace
+                             the saved video_*.npz (cross-validation folds).
+    experiment=True          return (metrics, per_type) without saving any
+                             model, report or figure.
+    """
+    rng = np.random.default_rng(seed)
     syn = {k: load(f"synthetic_{k}") for k in ("train", "val", "test")}
     tel = {k: load(f"telemetry_{k}") for k in ("train", "val", "test")}
     vid = {k: load(f"video_{k}") for k in ("train", "val", "test")}
+    if video is not None:
+        vid = {k: dict(v, src=np.array(["video"] * len(v["y"]))) for k, v in video.items()}
     have_tel = tel["train"] is not None
     have_vid = vid["train"] is not None
     print("telemetry available:", have_tel, " real video available:", have_vid)
@@ -133,14 +142,14 @@ def main(video_in_training=True):
     models = {}
 
     print("fitting isolation forest")
-    models["isolation_forest"] = IForestDetector(SEED).fit(normal["summary"])
+    models["isolation_forest"] = IForestDetector(seed).fit(normal["summary"])
     print("fitting one-class svm")
-    models["one_class_svm"] = OCSVMDetector(seed=SEED).fit(normal["summary"])
+    models["one_class_svm"] = OCSVMDetector(seed=seed).fit(normal["summary"])
     print("fitting lstm autoencoder on", "cuda" if torch.cuda.is_available() else "cpu")
-    lstm = LSTMAEDetector(seed=SEED).fit(normal["seq"], val_normal["seq"])
+    lstm = LSTMAEDetector(seed=seed).fit(normal["seq"], val_normal["seq"])
     models["lstm_autoencoder"] = lstm
     print("fitting supervised reference")
-    models["supervised_gbm"] = SupervisedGBM(SEED).fit(train["summary"], train["y"])
+    models["supervised_gbm"] = SupervisedGBM(seed).fit(train["summary"], train["y"])
 
     def raw_score(name, d):
         m = models[name]
@@ -201,6 +210,8 @@ def main(video_in_training=True):
 
     res = pd.DataFrame(rows)
     pt = pd.DataFrame(per_type).drop_duplicates(["test_set", "model", "type"])
+    if experiment:
+        return res, pt
     if not video_in_training:
         res.to_csv(REPORTS / "anomaly_metrics_no_video_train.csv", index=False)
         pt.to_csv(REPORTS / "anomaly_per_type_no_video_train.csv", index=False)

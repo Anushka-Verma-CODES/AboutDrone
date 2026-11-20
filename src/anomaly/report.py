@@ -16,6 +16,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.metrics import roc_auc_score
 
 from src.config import REPORTS, SEED, TRAJ_DATA
 from src.pipeline import AnomalyScorer
@@ -67,6 +68,7 @@ def _video_stats(scorer, d):
     real = d["y"] == 0
     groups = np.unique(d["group"][real])
     return {
+        "auroc": float(roc_auc_score(d["y"], s)) if (~real).any() else None,
         "real_windows": int(real.sum()),
         "false_alarm_rate": float(f[real].mean()),
         "real_tracks_flagged": int(sum(f[real & (d["group"] == g)].any() for g in groups)),
@@ -83,14 +85,17 @@ def real_tracks(scorer):
         print("no video test set yet (run src.trajectory.video)")
         return None
     d = dict(np.load(p, allow_pickle=True))
-    raw_p = TRAJ_DATA / "video_test_unsmoothed.npz"
-    raw = dict(np.load(raw_p, allow_pickle=True)) if raw_p.exists() else None
+    ablations = {}
+    for key, fname in (("unsmoothed", "video_test_unsmoothed.npz"),
+                       ("no_camera_comp", "video_test_no_camera_comp.npz")):
+        if (TRAJ_DATA / fname).exists():
+            ablations[key] = dict(np.load(TRAJ_DATA / fname, allow_pickle=True))
     out = {}
     for name in scorer.cal["thresholds"]:
         scorer.use(name, "video")
-        out[name] = {"threshold": float(scorer.threshold), "smoothed": _video_stats(scorer, d)}
-        if raw is not None:
-            out[name]["unsmoothed"] = _video_stats(scorer, raw)
+        out[name] = {"threshold": float(scorer.threshold), "full": _video_stats(scorer, d)}
+        for key, a in ablations.items():
+            out[name][key] = _video_stats(scorer, a)
     (REPORTS / "real_video_flag_rate.json").write_text(json.dumps(out, indent=2))
     print(json.dumps(out, indent=2))
 

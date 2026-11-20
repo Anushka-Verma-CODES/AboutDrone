@@ -15,7 +15,8 @@ import torch
 
 from src.anomaly.models import LSTMAEDetector
 from src.config import MODELS, OUTPUTS, TRAJ_HZ, WINDOW
-from src.tracking.track import iter_frames, track, tracks_to_segments, video_fps
+from src.tracking.link import MIN_TRACK_CONF, filter_tracks, link_tracks
+from src.tracking.track import DEFAULT_TRACKER, iter_frames, track, tracks_to_segments, video_fps
 from src.trajectory.features import SUMMARY_NAMES, resample, windows_from_segment
 
 DEFAULT_WEIGHTS = MODELS / "detector" / "best.pt"
@@ -164,13 +165,23 @@ def render(source, tracks_df, windows, scorer, fps, out_path, trail=60):
 
 
 def run(source, out_dir, weights=DEFAULT_WEIGHTS, conf=0.1, imgsz=1280, model=None,
-        max_frames=None, render_video=True, device=0, threshold_source="video"):
+        max_frames=None, render_video=True, device=0, threshold_source="video",
+        camera_comp=True, tracker=DEFAULT_TRACKER, link=True, min_track_conf=MIN_TRACK_CONF):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     fps = video_fps(source)
-    tr = track(source, weights, conf=conf, imgsz=imgsz, max_frames=max_frames, device=device)
+    tr = track(source, weights, conf=conf, imgsz=imgsz, max_frames=max_frames, device=device,
+               tracker=tracker)
+    if link:
+        tr = link_tracks(tr, fps)[0]
+    if min_track_conf:
+        tr = filter_tracks(tr, min_track_conf)
     tr.to_csv(out_dir / "tracks.csv", index=False)
-    segs = tracks_to_segments(tr, fps)
+    cam = None
+    if camera_comp:
+        from src.tracking.camera import estimate_motion
+        cam, _ = estimate_motion(source, max_frames=max_frames)
+    segs = tracks_to_segments(tr, fps, cam=cam)
     scorer = AnomalyScorer(model, threshold_source)
     win, per_track = score_segments(segs, scorer)
     win.to_csv(out_dir / "windows.csv", index=False)
@@ -179,7 +190,8 @@ def run(source, out_dir, weights=DEFAULT_WEIGHTS, conf=0.1, imgsz=1280, model=No
         render(source, tr, win, scorer, fps, out_dir / "annotated.mp4")
     (out_dir / "meta.json").write_text(json.dumps(
         {"source": str(source), "fps": fps, "model": scorer.model,
-         "threshold": scorer.threshold, "threshold_source": scorer.source, "n_tracks": int(tr.track_id.nunique()) if len(tr) else 0},
+         "threshold": scorer.threshold, "threshold_source": scorer.source,
+         "camera_compensation": camera_comp, "tracker": tracker, "linking": link, "min_track_conf": min_track_conf, "n_tracks": int(tr.track_id.nunique()) if len(tr) else 0},
         indent=2, default=float))
     return tr, win, per_track
 
@@ -195,7 +207,13 @@ if __name__ == "__main__":
     ap.add_argument("--threshold-source", default="video",
                     choices=["video", "telemetry", "synthetic", "global"],
                     help="which validation set the decision threshold was tuned on")
+    ap.add_argument("--tracker", default=DEFAULT_TRACKER, choices=["bytetrack", "botsort"])
+    ap.add_argument("--no-linking", action="store_true", help="skip offline tracklet linking")
+    ap.add_argument("--no-camera-comp", action="store_true", help="skip camera motion compensation")
+    ap.add_argument("--min-track-conf", type=float, default=MIN_TRACK_CONF,
+                    help="drop tracks whose best detection is below this (0 = keep all)")
     a = ap.parse_args()
     _, _, summary = run(a.source, a.out, a.weights, a.conf, a.imgsz, a.model,
-                        threshold_source=a.threshold_source)
+                        threshold_source=a.threshold_source, camera_comp=not a.no_camera_comp,
+                        tracker=a.tracker, link=not a.no_linking, min_track_conf=a.min_track_conf)
     print(summary.to_string(index=False))

@@ -1,11 +1,14 @@
 {
-  "mota": 0.8245116572148709,
-  "motp": 0.24608572170279436,
-  "idf1": 0.647614325317226,
-  "num_switches": 94.0,
-  "precision": 0.9156245767685431,
-  "recall": 0.9128634440543704,
+  "mota": 0.8617337294085876,
+  "motp": 0.24507242700570386,
+  "idf1": 0.8439800631030225,
+  "num_switches": 8.0,
+  "precision": 0.9450278810408922,
+  "recall": 0.9153389143937348,
   "mostly_tracked": 15.0,
-  "num_fragmentations": 516.0,
-  "mean_success@0.5": 0.873031095955741
+  "num_fragmentations": 542.0,
+  "mean_success@0.5": 0.8945980676807096,
+  "tracks_per_video": 1.45,
+  "tracker": "botsort",
+  "post_processing": "linked+filtered"
 }

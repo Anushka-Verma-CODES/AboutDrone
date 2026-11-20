@@ -1,0 +1,408 @@
+{'test_set': 'synthetic', 'model': 'isolation_forest', 'groups': 1000, 'auroc': 0.9818076651274249, 'auroc_lo': 0.9787631931636139, 'auroc_hi': 0.9847159069873542, 'fpr': 0.017560221095011715, 'fpr_lo': 0.015192612301365378, 'fpr_hi': 0.020078014868853893, 'recall': 0.8831316187594553, 'recall_lo': 0.8634362898762914, 'recall_hi': 0.9021924072671362}
+{'test_set': 'synthetic', 'model': 'lstm_autoencoder', 'groups': 1000, 'auroc': 0.9745591061084478, 'auroc_lo': 0.9673331464349021, 'auroc_hi': 0.9807264267504541, 'fpr': 0.00907581375247367, 'fpr_lo': 0.0075024937478685915, 'fpr_hi': 0.011001229498749593, 'recall': 0.8345310136157338, 'recall_lo': 0.8143724276524925, 'recall_hi': 0.8547649047473745}
+{'test_set': 'synthetic', 'model': 'ensemble', 'groups': 1000, 'auroc': 0.9843977716717707, 'auroc_lo': 0.9813963607228122, 'auroc_hi': 0.9873622361787733, 'fpr': 0.010668061779223437, 'fpr_lo': 0.008867293298661571, 'fpr_hi': 0.012568519518234615, 'recall': 0.8619515885022693, 'recall_lo': 0.8426686405285503, 'recall_hi': 0.8825310937099956}
+{'test_set': 'telemetry', 'model': 'isolation_forest', 'groups': 131, 'auroc': 0.8035872865027035, 'auroc_lo': 0.7413485100121271, 'auroc_hi': 0.8540771334497642, 'fpr': 0.17677219545767378, 'fpr_lo': 0.1420953639907228, 'fpr_hi': 0.21870361677967065, 'recall': 0.6098445595854922, 'recall_lo': 0.5194471971125183, 'recall_hi': 0.6983837425903308}
+{'test_set': 'telemetry', 'model': 'lstm_autoencoder', 'groups': 131, 'auroc': 0.8433734459821679, 'auroc_lo': 0.7740344163943316, 'auroc_hi': 0.9009908050862334, 'fpr': 0.20445629731589815, 'fpr_lo': 0.1512737261870189, 'fpr_hi': 0.27316728872675217, 'recall': 0.76286701208981, 'recall_lo': 0.6513729951471354, 'recall_hi': 0.8629192807691561}
+{'test_set': 'telemetry', 'model': 'ensemble', 'groups': 131, 'auroc': 0.8335034684952934, 'auroc_lo': 0.7665527658804816, 'auroc_hi': 0.8934107000751428, 'fpr': 0.1668100481761872, 'fpr_lo': 0.12356958282728264, 'fpr_hi': 0.22225315664120396, 'recall': 0.6499136442141623, 'recall_lo': 0.546244741711618, 'recall_hi': 0.7466958469801774}
+{'test_set': 'video', 'model': 'isolation_forest', 'groups': 7, 'auroc': 0.9614268090785267, 'auroc_lo': 0.9193899752670647, 'auroc_hi': 0.9799824843736855, 'fpr': 0.10782241014799154, 'fpr_lo': 0.011693155523078796, 'fpr_hi': 0.40816560569181803, 'recall': 0.9045553145336226, 'recall_lo': 0.8783415355348319, 'recall_hi': 0.93048128342246}
+{'test_set': 'video', 'model': 'lstm_autoencoder', 'groups': 7, 'auroc': 0.9616515250879374, 'auroc_lo': 0.9173669348302722, 'auroc_hi': 0.9843143547255723, 'fpr': 0.1649048625792812, 'fpr_lo': 0.029411764705882353, 'fpr_hi': 0.5643477403728807, 'recall': 0.9154013015184381, 'recall_lo': 0.8673941323212072, 'recall_hi': 0.9682539682539683}
+{'test_set': 'video', 'model': 'ensemble', 'groups': 7, 'auroc': 0.967168532421017, 'auroc_lo': 0.9289550513655976, 'auroc_hi': 0.9879625739023393, 'fpr': 0.1543340380549683, 'fpr_lo': 0.029411764705882353, 'fpr_hi': 0.5476702932828761, 'recall': 0.9175704989154013, 'recall_lo': 0.8747492421626185, 'recall_hi': 0.9611217948717949}
+telemetry available: True  real video available: True
+train windows 173686  (normal 158427, real video x3)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4105  val 0.2736
+  epoch   5  train 0.2987  val 0.2340
+  epoch  10  train 0.2065  val 0.1658
+  epoch  15  train 0.1659  val 0.1391
+  epoch  20  train 0.1490  val 0.1226
+  epoch  25  train 0.1374  val 0.1154
+  epoch  30  train 0.1330  val 0.1124
+  epoch  35  train 0.1299  val 0.1096
+  epoch  40  train 0.1290  val 0.1088
+fitting supervised reference
+{'fold': 0, 'test_videos': 'video16 video11 video17 video05', 'model': 'isolation_forest', 'auroc': 0.966604183109708, 'fpr': 0.05803571428571429, 'recall': 0.8812154696132597}
+{'fold': 0, 'test_videos': 'video16 video11 video17 video05', 'model': 'lstm_autoencoder', 'auroc': 0.9456763022888715, 'fpr': 0.16964285714285715, 'recall': 0.9116022099447514}
+{'fold': 0, 'test_videos': 'video16 video11 video17 video05', 'model': 'ensemble', 'auroc': 0.96159727703236, 'fpr': 0.15178571428571427, 'recall': 0.9116022099447514}
+telemetry available: True  real video available: True
+train windows 172672  (normal 157413, real video x3)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4055  val 0.2754
+  epoch   5  train 0.2908  val 0.2273
+  epoch  10  train 0.1939  val 0.1560
+  epoch  15  train 0.1513  val 0.1235
+  epoch  20  train 0.1382  val 0.1153
+  epoch  25  train 0.1328  val 0.1103
+  epoch  30  train 0.1290  val 0.1079
+  epoch  35  train 0.1269  val 0.1065
+  epoch  40  train 0.1262  val 0.1061
+fitting supervised reference
+{'fold': 1, 'test_videos': 'video10 video07 video06 video18', 'model': 'isolation_forest', 'auroc': 0.9629156010230179, 'fpr': 0.01278772378516624, 'recall': 0.6808035714285714}
+{'fold': 1, 'test_videos': 'video10 video07 video06 video18', 'model': 'lstm_autoencoder', 'auroc': 0.9721067774936061, 'fpr': 0.020460358056265986, 'recall': 0.7946428571428571}
+{'fold': 1, 'test_videos': 'video10 video07 video06 video18', 'model': 'ensemble', 'auroc': 0.9725006850566313, 'fpr': 0.010230179028132993, 'recall': 0.8147321428571429}
+telemetry available: True  real video available: True
+train windows 173848  (normal 158589, real video x3)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4029  val 0.2715
+  epoch   5  train 0.2917  val 0.2365
+  epoch  10  train 0.1976  val 0.1606
+  epoch  15  train 0.1546  val 0.1307
+  epoch  20  train 0.1404  val 0.1181
+  epoch  25  train 0.1346  val 0.1144
+  epoch  30  train 0.1310  val 0.1115
+  epoch  35  train 0.1289  val 0.1101
+  epoch  40  train 0.1282  val 0.1097
+fitting supervised reference
+{'fold': 2, 'test_videos': 'video15 video20 video12 video02', 'model': 'isolation_forest', 'auroc': 0.959333679025149, 'fpr': 0.010344827586206896, 'recall': 0.7819548872180451}
+{'fold': 2, 'test_videos': 'video15 video20 video12 video02', 'model': 'lstm_autoencoder', 'auroc': 0.9600725952813066, 'fpr': 0.034482758620689655, 'recall': 0.7368421052631579}
+{'fold': 2, 'test_videos': 'video15 video20 video12 video02', 'model': 'ensemble', 'auroc': 0.9680515945035001, 'fpr': 0.020689655172413793, 'recall': 0.8157894736842105}
+telemetry available: True  real video available: True
+train windows 173404  (normal 158145, real video x3)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4112  val 0.2695
+  epoch   5  train 0.2967  val 0.2287
+  epoch  10  train 0.2023  val 0.1636
+  epoch  15  train 0.1558  val 0.1293
+  epoch  20  train 0.1417  val 0.1176
+  epoch  25  train 0.1356  val 0.1121
+  epoch  30  train 0.1296  val 0.1090
+  epoch  35  train 0.1275  val 0.1078
+  epoch  40  train 0.1267  val 0.1071
+fitting supervised reference
+{'fold': 3, 'test_videos': 'video08 video04 video19 video14', 'model': 'isolation_forest', 'auroc': 0.9355663196949398, 'fpr': 0.268370607028754, 'recall': 0.9580645161290322}
+{'fold': 3, 'test_videos': 'video08 video04 video19 video14', 'model': 'lstm_autoencoder', 'auroc': 0.9423065031433577, 'fpr': 0.402555910543131, 'recall': 0.9935483870967742}
+{'fold': 3, 'test_videos': 'video08 video04 video19 video14', 'model': 'ensemble', 'auroc': 0.952999072451819, 'fpr': 0.33865814696485624, 'recall': 1.0}
+telemetry available: True  real video available: True
+train windows 174754  (normal 159495, real video x3)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4064  val 0.2622
+  epoch   5  train 0.2966  val 0.2268
+  epoch  10  train 0.1934  val 0.1572
+  epoch  15  train 0.1538  val 0.1257
+  epoch  20  train 0.1396  val 0.1140
+  epoch  25  train 0.1322  val 0.1105
+  epoch  30  train 0.1296  val 0.1079
+  epoch  35  train 0.1265  val 0.1060
+  epoch  40  train 0.1255  val 0.1056
+fitting supervised reference
+{'fold': 4, 'test_videos': 'video13 video01 video03 video09', 'model': 'isolation_forest', 'auroc': 0.9789431330472103, 'fpr': 0.0, 'recall': 0.7725321888412017}
+{'fold': 4, 'test_videos': 'video13 video01 video03 video09', 'model': 'lstm_autoencoder', 'auroc': 0.9897800429184549, 'fpr': 0.003125, 'recall': 0.7424892703862661}
+{'fold': 4, 'test_videos': 'video13 video01 video03 video09', 'model': 'ensemble', 'auroc': 0.9903567596566524, 'fpr': 0.0, 'recall': 0.8197424892703863}
+telemetry available: True  real video available: True
+train windows 174905  (normal 159749, real video x5)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4112  val 0.2615
+  epoch   5  train 0.2809  val 0.2192
+  epoch  10  train 0.1858  val 0.1676
+  epoch  15  train 0.1501  val 0.1323
+  epoch  20  train 0.1350  val 0.1175
+  epoch  25  train 0.1293  val 0.1154
+  epoch  30  train 0.1243  val 0.1063
+  epoch  35  train 0.1220  val 0.1041
+  epoch  40  train 0.1214  val 0.1036
+fitting supervised reference
+telemetry available: True  real video available: True
+train windows 174905  (normal 159610, real video x5)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4091  val 0.2542
+  epoch   5  train 0.2920  val 0.2184
+  epoch  10  train 0.1901  val 0.1525
+  epoch  15  train 0.1506  val 0.1228
+  epoch  20  train 0.1355  val 0.1121
+  epoch  25  train 0.1289  val 0.1091
+  epoch  30  train 0.1251  val 0.1052
+  epoch  35  train 0.1231  val 0.1042
+  epoch  40  train 0.1224  val 0.1038
+fitting supervised reference
+telemetry available: True  real video available: True
+train windows 174905  (normal 159632, real video x5)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4092  val 0.2551
+  epoch   5  train 0.2957  val 0.2224
+  epoch  10  train 0.1932  val 0.1527
+  epoch  15  train 0.1561  val 0.1308
+  epoch  20  train 0.1388  val 0.1151
+  epoch  25  train 0.1309  val 0.1098
+  epoch  30  train 0.1274  val 0.1069
+  epoch  35  train 0.1250  val 0.1055
+  epoch  40  train 0.1241  val 0.1052
+fitting supervised reference
+{
+  "video_cv": {
+    "isolation_forest": {
+      "auroc": {
+        "mean": 0.960672583180005,
+        "std": 0.01585989541057547,
+        "min": 0.9355663196949398,
+        "max": 0.9789431330472103
+      },
+      "fpr": {
+        "mean": 0.06990777453716829,
+        "std": 0.1131657893129934,
+        "min": 0.0,
+        "max": 0.268370607028754
+      },
+      "recall": {
+        "mean": 0.8149141266460219,
+        "std": 0.10695335808764028,
+        "min": 0.6808035714285714,
+        "max": 0.9580645161290322
+      }
+    },
+    "lstm_autoencoder": {
+      "auroc": {
+        "mean": 0.9619884442251193,
+        "std": 0.01956967604824693,
+        "min": 0.9423065031433577,
+        "max": 0.9897800429184549
+      },
+      "fpr": {
+        "mean": 0.12605337687258877,
+        "std": 0.16807746986640568,
+        "min": 0.003125,
+        "max": 0.402555910543131
+      },
+      "recall": {
+        "mean": 0.8358249659667614,
+        "std": 0.11272088664884045,
+        "min": 0.7368421052631579,
+        "max": 0.9935483870967742
+      }
+    },
+    "ensemble": {
+      "auroc": {
+        "mean": 0.9691010777401926,
+        "std": 0.013964637106576345,
+        "min": 0.952999072451819,
+        "max": 0.9903567596566524
+      },
+      "fpr": {
+        "mean": 0.10427273909022347,
+        "std": 0.1448248436682279,
+        "min": 0.0,
+        "max": 0.33865814696485624
+      },
+      "recall": {
+        "mean": 0.8723732631512983,
+        "std": 0.08234336124378216,
+        "min": 0.8147321428571429,
+        "max": 1.0
+      }
+    }
+  },
+  "seed_spread": {
+    "synthetic/ensemble": {
+      "auroc": {
+        "mean": 0.9842808651533164,
+        "std": 0.00023247893040397011
+      },
+      "auprc": {
+        "mean": 0.9330747876633618,
+        "std": 0.0015796176946124623
+      },
+      "f1": {
+        "mean": 0.8852854628096444,
+        "std": 0.0017066583567338352
+      },
+      "recall": {
+        "mean": 0.8707923600605143,
+        "std": 0.00839684473218381
+      },
+      "fpr": {
+        "mean": 0.011600664194891159,
+        "std": 0.0008464187942642926
+      }
+    },
+    "synthetic/isolation_forest": {
+      "auroc": {
+        "mean": 0.981677258848324,
+        "std": 0.00043759993355781747
+      },
+      "auprc": {
+        "mean": 0.9073722395141921,
+        "std": 0.0009761654117342661
+      },
+      "f1": {
+        "mean": 0.870880123495012,
+        "std": 0.0013614635244052855
+      },
+      "recall": {
+        "mean": 0.8809096066565809,
+        "std": 0.005429227390300893
+      },
+      "fpr": {
+        "mean": 0.017093919887177855,
+        "std": 0.0005448067592957619
+      }
+    },
+    "synthetic/lstm_autoencoder": {
+      "auroc": {
+        "mean": 0.9746538039156362,
+        "std": 0.000710896460903841
+      },
+      "auprc": {
+        "mean": 0.9262045499565141,
+        "std": 0.003624123733639709
+      },
+      "f1": {
+        "mean": 0.8744598853661775,
+        "std": 0.0051738408736907
+      },
+      "recall": {
+        "mean": 0.8425208018154312,
+        "std": 0.0069950573896299705
+      },
+      "fpr": {
+        "mean": 0.010161954370720833,
+        "std": 0.0017790123431154262
+      }
+    },
+    "telemetry/ensemble": {
+      "auroc": {
+        "mean": 0.832907746553792,
+        "std": 0.001823122938308986
+      },
+      "auprc": {
+        "mean": 0.4237091690995254,
+        "std": 0.0016189510211833313
+      },
+      "f1": {
+        "mean": 0.3885337350823067,
+        "std": 0.0020984175858654434
+      },
+      "recall": {
+        "mean": 0.6593696027633851,
+        "std": 0.012466677285569293
+      },
+      "fpr": {
+        "mean": 0.1728449759119064,
+        "std": 0.006488995988847336
+      }
+    },
+    "telemetry/isolation_forest": {
+      "auroc": {
+        "mean": 0.7999886676603822,
+        "std": 0.00520556109259532
+      },
+      "auprc": {
+        "mean": 0.36130856410973333,
+        "std": 0.005588673224796058
+      },
+      "f1": {
+        "mean": 0.3530964864441724,
+        "std": 0.0067647446041733846
+      },
+      "recall": {
+        "mean": 0.6123920552677029,
+        "std": 0.0056007125479248234
+      },
+      "fpr": {
+        "mean": 0.1850180660701996,
+        "std": 0.006857942846395614
+      }
+    },
+    "telemetry/lstm_autoencoder": {
+      "auroc": {
+        "mean": 0.8431232400476889,
+        "std": 0.0004235165900315629
+      },
+      "auprc": {
+        "mean": 0.42517190981388353,
+        "std": 0.0009142852655720318
+      },
+      "f1": {
+        "mean": 0.3962109775843671,
+        "std": 0.006830929045044472
+      },
+      "recall": {
+        "mean": 0.767314335060449,
+        "std": 0.01802244767688945
+      },
+      "fpr": {
+        "mean": 0.21000086028905712,
+        "std": 0.014062926577368415
+      }
+    },
+    "video/ensemble": {
+      "auroc": {
+        "mean": 0.967678156228073,
+        "std": 0.0007747386970638995
+      },
+      "auprc": {
+        "mean": 0.9719655399537219,
+        "std": 0.0007710144845092888
+      },
+      "f1": {
+        "mean": 0.8916502407946347,
+        "std": 0.0054944663496774475
+      },
+      "recall": {
+        "mean": 0.9213665943600868,
+        "std": 0.00671517556797063
+      },
+      "fpr": {
+        "mean": 0.1416490486257928,
+        "std": 0.013701354542088501
+      }
+    },
+    "video/isolation_forest": {
+      "auroc": {
+        "mean": 0.9608696050960087,
+        "std": 0.0004027804359998228
+      },
+      "auprc": {
+        "mean": 0.9680167570145861,
+        "std": 0.0002132331597454667
+      },
+      "f1": {
+        "mean": 0.8971512718167465,
+        "std": 0.0018397945730887022
+      },
+      "recall": {
+        "mean": 0.903470715835141,
+        "std": 0.002169197396963184
+      },
+      "fpr": {
+        "mean": 0.10782241014799154,
+        "std": 0.006223932957243024
+      }
+    },
+    "video/lstm_autoencoder": {
+      "auroc": {
+        "mean": 0.9628977817319643,
+        "std": 0.00107771882384086
+      },
+      "auprc": {
+        "mean": 0.9660026657977199,
+        "std": 0.0016733160566660486
+      },
+      "f1": {
+        "mean": 0.8832399986205886,
+        "std": 0.0053996188848705285
+      },
+      "recall": {
+        "mean": 0.920824295010846,
+        "std": 0.0045155444673886025
+      },
+      "fpr": {
+        "mean": 0.16014799154334036,
+        "std": 0.01083187184562326
+      }
+    }
+  }
+}

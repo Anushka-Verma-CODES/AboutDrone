@@ -24,19 +24,19 @@ import json
 import os
 import re
 import shutil
-from collections import Counter, defaultdict
+from collections import Counter
 
 import numpy as np
 from ultralytics import YOLO
 
-from src.config import MODELS, PROCESSED, REPORTS, SEED
+from src.config import MODELS, PROCESSED, REPORTS
+from src.detection.blocks import BLOCK, EDGE, assign_blocks, block_of
 
 CROPS = PROCESSED / "drone_cls"
 SPLITS = PROCESSED / "cls_splits"
 RUNS = MODELS / "runs"
 BASE = "yolo11s-cls.pt"           # ImageNet-pretrained
 NAME_RE = re.compile(r"^vd_(?P<model>.+?)_(?P<scen>cloudy|evening|sunny)_.*?_(?P<num>\d+)_\d+\.jpg$", re.I)
-BLOCK, EDGE = 100, 5
 SCENARIOS = ("cloudy", "evening", "sunny")
 
 
@@ -49,24 +49,8 @@ def all_crops():
     return out
 
 
-def block_of(num):
-    i = num - 1
-    return i // BLOCK, i % BLOCK
-
-
-def assign_blocks(crops, seed=SEED):
-    """(cls, scen, block) -> split, 8/2/2 blocks per sequence."""
-    rng = np.random.default_rng(seed)
-    blocks = defaultdict(set)
-    for c in crops:
-        blocks[(c["cls"], c["scen"])].add(block_of(c["num"])[0])
-    out = {}
-    for key, bs in sorted(blocks.items()):
-        bs = list(rng.permutation(sorted(bs)))
-        n_test = n_val = max(1, round(len(bs) / 6))
-        for j, b in enumerate(bs):
-            out[key + (b,)] = "test" if j < n_test else "val" if j < n_test + n_val else "train"
-    return out
+def assign(crops):
+    return assign_blocks(((c["cls"], c["scen"]), c["num"]) for c in crops)
 
 
 def materialise(name, items):
@@ -87,7 +71,7 @@ def materialise(name, items):
 
 
 def block_split(crops):
-    blocks = assign_blocks(crops)
+    blocks = assign(crops)
     for c in crops:
         b, off = block_of(c["num"])
         if EDGE <= off < BLOCK - EDGE:
@@ -96,7 +80,7 @@ def block_split(crops):
 
 def cross_weather_split(crops, held_out):
     """Test = one weather scenario; val = held-out blocks of the other two."""
-    blocks = assign_blocks(crops)
+    blocks = assign(crops)
     for c in crops:
         if c["scen"] == held_out:
             yield c, "test"

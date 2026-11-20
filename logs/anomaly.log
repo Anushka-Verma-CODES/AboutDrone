@@ -1,62 +1,62 @@
 telemetry available: True  real video available: True
-train windows 174900  (normal 159641, real video x5)  val 104889
+train windows 174905  (normal 159646, real video x5)  val 104889
 fitting isolation forest
 fitting one-class svm
 fitting lstm autoencoder on cuda
-  epoch   1  train 0.4027  val 0.2605
-  epoch   5  train 0.2916  val 0.2243
-  epoch  10  train 0.1824  val 0.1484
-  epoch  15  train 0.1542  val 0.1264
-  epoch  20  train 0.1389  val 0.1158
-  epoch  25  train 0.1332  val 0.1122
-  epoch  30  train 0.1289  val 0.1084
-  epoch  35  train 0.1262  val 0.1069
-  epoch  40  train 0.1255  val 0.1064
+  epoch   1  train 0.4027  val 0.2551
+  epoch   5  train 0.2888  val 0.2166
+  epoch  10  train 0.1786  val 0.1450
+  epoch  15  train 0.1481  val 0.1353
+  epoch  20  train 0.1326  val 0.1104
+  epoch  25  train 0.1271  val 0.1063
+  epoch  30  train 0.1216  val 0.1028
+  epoch  35  train 0.1199  val 0.1016
+  epoch  40  train 0.1192  val 0.1013
 fitting supervised reference
      test_set             model  ...  precision_src_thr  recall_src_thr
-0   synthetic  isolation_forest  ...              0.854           0.889
-1   synthetic     one_class_svm  ...              0.854           0.865
-2   synthetic  lstm_autoencoder  ...              0.916           0.840
-3   synthetic    supervised_gbm  ...              0.945           0.909
-4   synthetic          ensemble  ...              0.892           0.878
-5   telemetry  isolation_forest  ...              0.259           0.608
+0   synthetic  isolation_forest  ...              0.858           0.883
+1   synthetic     one_class_svm  ...              0.859           0.848
+2   synthetic  lstm_autoencoder  ...              0.917           0.835
+3   synthetic    supervised_gbm  ...              0.934           0.917
+4   synthetic          ensemble  ...              0.907           0.862
+5   telemetry  isolation_forest  ...              0.256           0.610
 6   telemetry     one_class_svm  ...              0.091           1.000
-7   telemetry  lstm_autoencoder  ...              0.276           0.763
-8   telemetry    supervised_gbm  ...              0.231           0.548
-9   telemetry          ensemble  ...              0.273           0.680
+7   telemetry  lstm_autoencoder  ...              0.271           0.763
+8   telemetry    supervised_gbm  ...              0.212           0.622
+9   telemetry          ensemble  ...              0.280           0.650
 10   combined  isolation_forest  ...                NaN             NaN
 11   combined     one_class_svm  ...                NaN             NaN
 12   combined  lstm_autoencoder  ...                NaN             NaN
 13   combined    supervised_gbm  ...                NaN             NaN
 14   combined          ensemble  ...                NaN             NaN
-15      video  isolation_forest  ...              0.909           0.941
-16      video     one_class_svm  ...              0.921           0.900
-17      video  lstm_autoencoder  ...              0.936           0.902
-18      video    supervised_gbm  ...              0.919           0.911
-19      video          ensemble  ...              0.954           0.906
+15      video  isolation_forest  ...              0.891           0.905
+16      video     one_class_svm  ...              0.865           0.872
+17      video  lstm_autoencoder  ...              0.844           0.915
+18      video    supervised_gbm  ...              0.940           0.918
+19      video          ensemble  ...              0.853           0.918
 
 [20 rows x 11 columns]
 model                        ensemble  ...  supervised_gbm
 test_set  type                         ...                
-synthetic circling              0.871  ...           0.950
-          dive                  0.933  ...           0.971
-          jump                  0.914  ...           0.878
-          normal (FPR)          0.013  ...           0.006
-          reversal              0.763  ...           0.770
-          speed_burst           0.818  ...           0.899
-          zigzag                0.943  ...           0.952
-telemetry Altitude              0.318  ...           0.228
-          External Position     0.835  ...           0.635
-          Global Position       0.518  ...           0.447
-          Mechanical            0.417  ...           0.558
-          normal (FPR)          0.181  ...           0.182
-video     circling              1.000  ...           0.974
-          dive                  0.972  ...           1.000
-          jump                  0.931  ...           0.958
-          normal (FPR)          0.048  ...           0.088
-          reversal              0.588  ...           0.632
-          speed_burst           0.937  ...           0.899
-          zigzag                0.986  ...           0.986
+synthetic circling              0.817  ...           0.944
+          dive                  0.928  ...           0.969
+          jump                  0.909  ...           0.892
+          normal (FPR)          0.011  ...           0.008
+          reversal              0.759  ...           0.792
+          speed_burst           0.809  ...           0.909
+          zigzag                0.940  ...           0.964
+telemetry Altitude              0.301  ...           0.317
+          External Position     0.807  ...           0.701
+          Global Position       0.480  ...           0.488
+          Mechanical            0.366  ...           0.681
+          normal (FPR)          0.167  ...           0.231
+video     circling              1.000  ...           1.000
+          dive                  0.987  ...           1.000
+          jump                  0.947  ...           0.973
+          normal (FPR)          0.154  ...           0.057
+          reversal              0.708  ...           0.639
+          speed_burst           0.869  ...           0.893
+          zigzag                0.988  ...           0.988
 
 [19 rows x 5 columns]
-selected model (mean per-source val AUPRC): ensemble {'isolation_forest': 0.725, 'one_class_svm': 0.679, 'lstm_autoencoder': 0.751, 'ensemble': 0.752}
+selected model (mean per-source val AUPRC): lstm_autoencoder {'isolation_forest': 0.722, 'one_class_svm': 0.675, 'lstm_autoencoder': 0.752, 'ensemble': 0.752}

@@ -1,0 +1,12 @@
+[15:34:23] waiting for detector
+[18:45:37] tracking comparison
+[19:16:48] tracking exit 0
+[19:16:48] anomaly training
+[19:20:16] anomaly exit 127
+[19:20:16] no-video ablation
+[19:23:22] ablation exit 127
+[19:23:22] report
+[19:23:38] report exit 0
+[19:23:38] robustness
+[19:50:51] robustness exit 127
+[19:50:51] ALL DONE

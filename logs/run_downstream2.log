@@ -1,0 +1,12 @@
+[19:57:05] rerun after track filter
+[19:57:05] tracking comparison
+[19:59:36] tracking exit 0
+[19:59:36] anomaly training
+[20:02:47] anomaly exit 127
+[20:02:47] no-video ablation
+[20:05:58] ablation exit 127
+[20:05:58] report
+[20:06:12] report exit 0
+[20:06:12] robustness
+[20:34:46] robustness exit 127
+[20:34:46] ALL DONE

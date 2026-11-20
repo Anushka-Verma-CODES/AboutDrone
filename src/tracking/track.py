@@ -9,7 +9,11 @@ from ultralytics import YOLO
 from src.config import ROOT
 from src.tracking.smooth import smooth_track
 
-TRACKER_CFG = str(ROOT / "configs" / "bytetrack_drone.yaml")
+TRACKERS = {
+    "bytetrack": str(ROOT / "configs" / "bytetrack_drone.yaml"),
+    "botsort": str(ROOT / "configs" / "botsort_drone.yaml"),
+}
+DEFAULT_TRACKER = "botsort"   # best IDF1 on the training videos (reports/tracking_comparison.csv)
 IMG_EXT = {".jpg", ".jpeg", ".png", ".bmp"}
 
 
@@ -39,7 +43,8 @@ def video_fps(source, default=25.0):
     return fps if fps and fps > 1 else default
 
 
-def track(source, weights, conf=0.1, imgsz=1280, device=0, max_frames=None, on_frame=None):
+def track(source, weights, conf=0.1, imgsz=1280, device=0, max_frames=None, on_frame=None,
+          tracker=DEFAULT_TRACKER):
     """Run the detector with ByteTrack. Returns a DataFrame with one row per
     (frame, track): frame, track_id, x1, y1, x2, y2, conf."""
     model = YOLO(str(weights))
@@ -47,7 +52,7 @@ def track(source, weights, conf=0.1, imgsz=1280, device=0, max_frames=None, on_f
     for i, frame in enumerate(iter_frames(source)):
         if max_frames and i >= max_frames:
             break
-        res = model.track(frame, persist=True, tracker=TRACKER_CFG, conf=conf,
+        res = model.track(frame, persist=True, tracker=TRACKERS[tracker], conf=conf,
                           imgsz=imgsz, device=device, verbose=False)[0]
         b = res.boxes
         if b is not None and b.id is not None:
@@ -73,8 +78,10 @@ def detect_only(source, weights, conf=0.1, imgsz=1280, device=0):
     return pd.DataFrame(rows, columns=["frame", "x1", "y1", "x2", "y2", "conf"])
 
 
-def tracks_to_segments(df, fps, min_len=15, smooth=True):
+def tracks_to_segments(df, fps, min_len=15, smooth=True, cam=None):
     """Convert tracker output into trajectory dicts for the feature code.
+    cam: per-frame camera transforms (src.tracking.camera); if given, box
+    centres and sizes are mapped into first-frame coordinates first.
     With smooth=True the box centre and size are Kalman/RTS smoothed."""
     out = {}
     for tid, g in df.groupby("track_id"):
@@ -84,9 +91,13 @@ def tracks_to_segments(df, fps, min_len=15, smooth=True):
         w = (g.x2 - g.x1).to_numpy()
         h = (g.y2 - g.y1).to_numpy()
         t = g.frame.to_numpy() / fps
-        u = ((g.x1 + g.x2) / 2).to_numpy()
-        v = -((g.y1 + g.y2) / 2).to_numpy()          # image y points down
+        cx = ((g.x1 + g.x2) / 2).to_numpy()
+        cy = ((g.y1 + g.y2) / 2).to_numpy()
         scale = np.sqrt(np.clip(w * h, 1, None))
+        if cam is not None:
+            from src.tracking.camera import compensate
+            cx, cy, scale = compensate(g.frame.to_numpy(), cx, cy, scale, cam)
+        u, v = cx, -cy                                # image y points down
         if smooth:
             u, v, scale = smooth_track(t, u, v, scale)
         out[int(tid)] = {"frame": g.frame.to_numpy(), "t": t, "u": u, "v": v, "scale": scale}

@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 
 from src.config import REPORTS, SEED, STRIDE, TRAJ_DATA, TRAJ_HZ
+from src.tracking.camera import load_cam
 from src.tracking.track import tracks_to_segments
 from src.trajectory.features import merge, resample, windows_from_segment
 from src.trajectory.synth import ANOMALY_TYPES, inject
@@ -35,10 +36,10 @@ def video_split(videos, seed=SEED):
     return {"test": order[:N_TEST], "val": order[N_TEST:N_TEST + N_VAL], "train": order[N_TEST + N_VAL:]}
 
 
-def segments(df, smooth=True):
+def segments(df, smooth=True, cam=None):
     """Resampled 10 Hz segments [(track_id, seg)] of one video's tracks."""
     out = []
-    for tid, tr in tracks_to_segments(df, DUT_FPS, smooth=smooth).items():
+    for tid, tr in tracks_to_segments(df, DUT_FPS, smooth=smooth, cam=cam).items():
         for s in resample(tr["t"], tr["u"], tr["v"], tr["scale"]):
             out.append((tid, s))
     return out
@@ -70,12 +71,13 @@ def inject_real(seg, kind, rng):
     return out
 
 
-def build(video_names, smooth=True, with_injected=False, stride=STRIDE, seed=SEED):
+def build(video_names, smooth=True, with_injected=False, stride=STRIDE, seed=SEED, camera=True):
     rng = np.random.default_rng(seed)
     parts = []
     for name in video_names:
         df = pd.read_csv(REPORTS / f"dut_tracks_{name}.csv")
-        for tid, seg in segments(df, smooth):
+        cam = load_cam(name) if camera else None
+        for tid, seg in segments(df, smooth, cam):
             parts.append(_windows(seg, f"{name}_{tid}", "real_video", stride))
             if not with_injected or len(seg["t"]) < MIN_INJECT_LEN:
                 continue
@@ -104,9 +106,11 @@ def main():
         np.savez_compressed(TRAJ_DATA / f"video_{k}.npz", **d)
         print(f"video_{k}: {len(d['y'])} windows, {int(d['y'].sum())} anomalous")
 
-    # ablation: same test videos without Kalman smoothing
+    # ablations on the same test videos: no Kalman smoothing / no camera compensation
     raw = build(split["test"], smooth=False, with_injected=True)
     np.savez_compressed(TRAJ_DATA / "video_test_unsmoothed.npz", **raw)
+    nocam = build(split["test"], with_injected=True, camera=False)
+    np.savez_compressed(TRAJ_DATA / "video_test_no_camera_comp.npz", **nocam)
     # all videos, normal windows only (used by older figures / sanity checks)
     np.savez_compressed(TRAJ_DATA / "dut_video_tracks.npz", **build(videos))
     (TRAJ_DATA / "video_split.json").write_text(pd.Series(split).to_json(indent=2))
