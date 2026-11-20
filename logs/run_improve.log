@@ -1,0 +1,8 @@
+[14:41:14] start
+[14:41:14] anomaly training
+[14:44:05] anomaly exit 127
+[14:44:05] report
+[14:44:10] report exit 1
+[14:44:10] classifier evaluation
+[15:01:17] classifier exit 0
+[15:01:17] ALL DONE

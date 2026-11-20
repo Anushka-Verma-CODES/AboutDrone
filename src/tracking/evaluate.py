@@ -3,8 +3,8 @@
 Each video has exactly one drone and one GT box per frame (-100 = absent).
 We report MOT metrics (MOTA, IDF1, ID switches) with motmetrics plus the
 single-object success rate (IoU > 0.5) commonly used for anti-UAV tracking.
-The resulting tracks are also turned into trajectory windows so the anomaly
-model can be checked on real video trajectories.
+The raw tracks are saved to reports/dut_tracks_videoNN.csv and then turned
+into trajectory windows by src.trajectory.video.
 
     python -m src.tracking.evaluate
 """
@@ -18,11 +18,10 @@ if not hasattr(np, "asfarray"):  # motmetrics 1.4 still calls the removed NumPy 
 import motmetrics as mm  # noqa: E402
 import pandas as pd
 
-from src.config import DUT_RAW, MODELS, REPORTS, TRAJ_DATA
-from src.tracking.track import track, tracks_to_segments
-from src.trajectory.features import merge, resample, windows_from_segment
+from src.config import DUT_RAW, MODELS, REPORTS
+from src.tracking.track import track
+from src.trajectory import video as video_traj
 
-DUT_FPS = 25.0
 
 
 def iou(a, b):
@@ -45,7 +44,7 @@ def main(imgsz=1280, conf=0.1):
     frames_root = next(p for p in (DUT_RAW / "tracking").rglob("video01") if p.is_dir()).parent
     videos = sorted(p.name for p in frames_root.iterdir() if p.is_dir() and p.name.startswith("video"))
 
-    acc_all, names, rows, traj_parts = [], [], [], []
+    acc_all, names, rows = [], [], []
     for v in videos:
         gt = load_gt(v)
         df = track(frames_root / v, weights, conf=conf, imgsz=imgsz)
@@ -73,13 +72,6 @@ def main(imgsz=1280, conf=0.1):
         rows.append({"video": v, "frames": len(gt), "visible": visible,
                      "success@0.5": hits / max(visible, 1), "tracks": int(df.track_id.nunique()) if len(df) else 0})
 
-        for tid, seg in tracks_to_segments(df, DUT_FPS).items():
-            for s in resample(seg["t"], seg["u"], seg["v"], seg["scale"]):
-                w = windows_from_segment(s)
-                if w is not None:
-                    w["group"] = np.array([f"{v}_{tid}"] * len(w["y"]))
-                    w["cls"] = np.array(["real_video"] * len(w["y"]))
-                    traj_parts.append(w)
         print(rows[-1])
 
     mh = mm.metrics.create()
@@ -95,10 +87,7 @@ def main(imgsz=1280, conf=0.1):
     overall["mean_success@0.5"] = float(per["success@0.5"].mean())
     (REPORTS / "tracking_summary.json").write_text(json.dumps(overall, indent=2, default=float))
 
-    d = merge(traj_parts)
-    if d is not None:
-        np.savez_compressed(TRAJ_DATA / "dut_video_tracks.npz", **d)
-        print("real video windows:", len(d["y"]))
+    video_traj.main()
 
 
 if __name__ == "__main__":

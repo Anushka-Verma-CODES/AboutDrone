@@ -1,0 +1,96 @@
+test_set,model,type,rate,n
+synthetic,isolation_forest,circling,0.9193825042881647,1166
+synthetic,isolation_forest,dive,0.9628796400449944,889
+synthetic,isolation_forest,jump,0.9302600472813238,846
+synthetic,isolation_forest,normal (FPR),0.017878670700361667,43963
+synthetic,isolation_forest,reversal,0.7833981841763943,771
+synthetic,isolation_forest,speed_burst,0.8567375886524823,705
+synthetic,isolation_forest,zigzag,0.9593852908891328,911
+synthetic,one_class_svm,circling,0.8636363636363636,1166
+synthetic,one_class_svm,dive,0.9201349831271091,889
+synthetic,one_class_svm,jump,0.9160756501182034,846
+synthetic,one_class_svm,normal (FPR),0.013989036235015809,43963
+synthetic,one_class_svm,reversal,0.7561608300907912,771
+synthetic,one_class_svm,speed_burst,0.8780141843971632,705
+synthetic,one_class_svm,zigzag,0.9176728869374314,911
+synthetic,lstm_autoencoder,circling,0.8130360205831904,1166
+synthetic,lstm_autoencoder,dive,0.9077615298087739,889
+synthetic,lstm_autoencoder,jump,0.9018912529550828,846
+synthetic,lstm_autoencoder,normal (FPR),0.012578759411323158,43963
+synthetic,lstm_autoencoder,reversal,0.7354085603112841,771
+synthetic,lstm_autoencoder,speed_burst,0.7262411347517731,705
+synthetic,lstm_autoencoder,zigzag,0.9396267837541163,911
+synthetic,supervised_gbm,circling,0.9622641509433962,1166
+synthetic,supervised_gbm,dive,0.9707536557930259,889
+synthetic,supervised_gbm,jump,0.8676122931442081,846
+synthetic,supervised_gbm,normal (FPR),0.005572868093624184,43963
+synthetic,supervised_gbm,reversal,0.7730220492866408,771
+synthetic,supervised_gbm,speed_burst,0.9078014184397163,705
+synthetic,supervised_gbm,zigzag,0.9527991218441273,911
+synthetic,ensemble,circling,0.8970840480274442,1166
+synthetic,ensemble,dive,0.9550056242969629,889
+synthetic,ensemble,jump,0.91725768321513,846
+synthetic,ensemble,normal (FPR),0.013465869026226599,43963
+synthetic,ensemble,reversal,0.7652399481193255,771
+synthetic,ensemble,speed_burst,0.8028368794326242,705
+synthetic,ensemble,zigzag,0.9582875960482986,911
+telemetry,isolation_forest,Altitude,0.319634703196347,876
+telemetry,isolation_forest,External Position,0.8082081545064378,3728
+telemetry,isolation_forest,Global Position,0.6515748031496063,508
+telemetry,isolation_forest,Mechanical,0.4941002949852507,678
+telemetry,isolation_forest,normal (FPR),0.20094631796283552,58120
+telemetry,one_class_svm,Altitude,1.0,876
+telemetry,one_class_svm,External Position,1.0,3728
+telemetry,one_class_svm,Global Position,1.0,508
+telemetry,one_class_svm,Mechanical,0.9985250737463127,678
+telemetry,one_class_svm,normal (FPR),0.9997591190640055,58120
+telemetry,lstm_autoencoder,Altitude,0.4394977168949772,876
+telemetry,lstm_autoencoder,External Position,0.947961373390558,3728
+telemetry,lstm_autoencoder,Global Position,0.5492125984251969,508
+telemetry,lstm_autoencoder,Mechanical,0.46017699115044247,678
+telemetry,lstm_autoencoder,normal (FPR),0.21608740536820373,58120
+telemetry,supervised_gbm,Altitude,0.19292237442922375,876
+telemetry,supervised_gbm,External Position,0.5812768240343348,3728
+telemetry,supervised_gbm,Global Position,0.468503937007874,508
+telemetry,supervised_gbm,Mechanical,0.5147492625368731,678
+telemetry,supervised_gbm,normal (FPR),0.13164143152099106,58120
+telemetry,ensemble,Altitude,0.3219178082191781,876
+telemetry,ensemble,External Position,0.85568669527897,3728
+telemetry,ensemble,Global Position,0.5511811023622047,508
+telemetry,ensemble,Mechanical,0.4277286135693215,678
+telemetry,ensemble,normal (FPR),0.18401582931865107,58120
+video,isolation_forest,circling,0.9736842105263158,76
+video,isolation_forest,dive,0.9859154929577465,71
+video,isolation_forest,jump,0.9305555555555556,72
+video,isolation_forest,normal (FPR),0.09273182957393483,399
+video,isolation_forest,reversal,0.5735294117647058,68
+video,isolation_forest,speed_burst,0.9240506329113924,79
+video,isolation_forest,zigzag,0.9722222222222222,72
+video,one_class_svm,circling,0.9736842105263158,76
+video,one_class_svm,dive,0.9859154929577465,71
+video,one_class_svm,jump,0.9583333333333334,72
+video,one_class_svm,normal (FPR),0.10776942355889724,399
+video,one_class_svm,reversal,0.5294117647058824,68
+video,one_class_svm,speed_burst,0.9367088607594937,79
+video,one_class_svm,zigzag,0.9166666666666666,72
+video,lstm_autoencoder,circling,1.0,76
+video,lstm_autoencoder,dive,0.971830985915493,71
+video,lstm_autoencoder,jump,0.9027777777777778,72
+video,lstm_autoencoder,normal (FPR),0.10275689223057644,399
+video,lstm_autoencoder,reversal,0.39705882352941174,68
+video,lstm_autoencoder,speed_burst,0.9113924050632911,79
+video,lstm_autoencoder,zigzag,0.9861111111111112,72
+video,supervised_gbm,circling,0.9868421052631579,76
+video,supervised_gbm,dive,1.0,71
+video,supervised_gbm,jump,0.9166666666666666,72
+video,supervised_gbm,normal (FPR),0.10025062656641603,399
+video,supervised_gbm,reversal,0.5294117647058824,68
+video,supervised_gbm,speed_burst,0.9240506329113924,79
+video,supervised_gbm,zigzag,0.9861111111111112,72
+video,ensemble,circling,1.0,76
+video,ensemble,dive,0.9859154929577465,71
+video,ensemble,jump,0.9166666666666666,72
+video,ensemble,normal (FPR),0.08020050125313283,399
+video,ensemble,reversal,0.45588235294117646,68
+video,ensemble,speed_burst,0.9240506329113924,79
+video,ensemble,zigzag,0.9861111111111112,72

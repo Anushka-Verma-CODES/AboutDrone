@@ -1,18 +1,59 @@
 {
-  "selected_model": "isolation_forest",
-  "val_auprc": {
-    "isolation_forest": 0.5189004227886173,
-    "one_class_svm": 0.4710783130666403,
-    "lstm_autoencoder": 0.4476845615983693,
-    "ensemble": 0.49326603020303006
+  "selected_model": "ensemble",
+  "val_auprc_mean": {
+    "isolation_forest": 0.7253645999725102,
+    "one_class_svm": 0.6790238990860761,
+    "lstm_autoencoder": 0.7508307981835359,
+    "ensemble": 0.7518531870709356
+  },
+  "val_auprc_per_source": {
+    "isolation_forest": {
+      "synthetic": 0.9036601715572987,
+      "telemetry": 0.30943863987532355,
+      "video": 0.9629949884849084
+    },
+    "one_class_svm": {
+      "synthetic": 0.8947539970239469,
+      "telemetry": 0.1986349956620183,
+      "video": 0.943682704572263
+    },
+    "lstm_autoencoder": {
+      "synthetic": 0.9277681277674361,
+      "telemetry": 0.3572284774406772,
+      "video": 0.9674957893424945
+    },
+    "ensemble": {
+      "synthetic": 0.9342113719799803,
+      "telemetry": 0.35043069579259,
+      "video": 0.9709174934402365
+    }
   },
   "thresholds": {
-    "isolation_forest": 0.5398266381160678,
-    "one_class_svm": 13.977152101686102,
-    "lstm_autoencoder": 0.5455095171928406,
-    "supervised_gbm": 0.7128911179455021,
-    "ensemble": 0.9783053268267348
+    "isolation_forest": 0.5242302551839154,
+    "one_class_svm": 10.130763181865845,
+    "lstm_autoencoder": 0.5049851536750793,
+    "supervised_gbm": 0.6964069766193028,
+    "ensemble": 0.9776885705320335
   },
-  "train_windows": 160000,
-  "train_normal_windows": 144741
+  "source_thresholds": {
+    "synthetic/isolation_forest": 0.5608669357138759,
+    "synthetic/one_class_svm": 16.066586706907458,
+    "synthetic/lstm_autoencoder": 0.62890625,
+    "synthetic/supervised_gbm": 0.8981027184644494,
+    "synthetic/ensemble": 0.9908893192958158,
+    "telemetry/isolation_forest": 0.44314809579306885,
+    "telemetry/one_class_svm": -33.81602339893345,
+    "telemetry/lstm_autoencoder": 0.025880154222249985,
+    "telemetry/supervised_gbm": 0.5788807954850127,
+    "telemetry/ensemble": 0.6261483028381609,
+    "video/isolation_forest": 0.535435615769717,
+    "video/one_class_svm": 2.7964991595775572,
+    "video/lstm_autoencoder": 0.4067228138446808,
+    "video/supervised_gbm": 0.7402111096902855,
+    "video/ensemble": 0.9719213581622826
+  },
+  "video_fpr_budget": 0.05,
+  "video_train_repeats": 5,
+  "train_windows": 174900,
+  "train_normal_windows": 159641
 }

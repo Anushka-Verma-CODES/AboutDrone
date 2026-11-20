@@ -1,0 +1,36 @@
+telemetry available: True  real video available: True
+train windows 160000  (normal 144741, real video x0)  val 104889
+fitting isolation forest
+fitting one-class svm
+fitting lstm autoencoder on cuda
+  epoch   1  train 0.4096  val 0.2912
+  epoch   5  train 0.3156  val 0.2588
+  epoch  10  train 0.2585  val 0.2103
+  epoch  15  train 0.1846  val 0.1481
+  epoch  20  train 0.1628  val 0.1339
+  epoch  25  train 0.1520  val 0.1248
+  epoch  30  train 0.1469  val 0.1211
+  epoch  35  train 0.1426  val 0.1173
+  epoch  40  train 0.1416  val 0.1167
+fitting supervised reference
+     test_set             model  auroc  auprc     f1  precision  recall  anomaly_rate  f1_src_thr  precision_src_thr  recall_src_thr
+0   synthetic  isolation_forest  0.984  0.918  0.868      0.809   0.936         0.107       0.883              0.859           0.907
+1   synthetic     one_class_svm  0.979  0.914  0.871      0.825   0.922         0.107       0.880              0.883           0.877
+2   synthetic  lstm_autoencoder  0.975  0.923  0.829      0.769   0.899         0.107       0.865              0.890           0.842
+3   synthetic    supervised_gbm  0.992  0.972  0.922      0.897   0.948         0.107       0.931              0.952           0.912
+4   synthetic          ensemble  0.985  0.934  0.857      0.797   0.926         0.107       0.888              0.888           0.889
+5   telemetry  isolation_forest  0.817  0.378  0.263      0.601   0.168         0.091       0.370              0.253           0.684
+6   telemetry     one_class_svm  0.430  0.216  0.242      0.729   0.145         0.091       0.166              0.091           1.000
+7   telemetry  lstm_autoencoder  0.845  0.430  0.198      0.822   0.113         0.091       0.395              0.264           0.779
+8   telemetry    supervised_gbm  0.799  0.363  0.354      0.400   0.318         0.091       0.357              0.276           0.505
+9   telemetry          ensemble  0.839  0.427  0.219      0.804   0.127         0.091       0.394              0.274           0.698
+10   combined  isolation_forest  0.880  0.654  0.630      0.765   0.535         0.098         NaN                NaN             NaN
+11   combined     one_class_svm  0.731  0.571  0.630      0.809   0.516         0.098         NaN                NaN             NaN
+12   combined  lstm_autoencoder  0.779  0.577  0.599      0.775   0.488         0.098         NaN                NaN             NaN
+13   combined    supervised_gbm  0.925  0.735  0.644      0.672   0.618         0.098         NaN                NaN             NaN
+14   combined          ensemble  0.853  0.631  0.621      0.798   0.508         0.098         NaN                NaN             NaN
+15      video  isolation_forest  0.967  0.972  0.869      0.798   0.954         0.523       0.906              0.914           0.897
+16      video     one_class_svm  0.960  0.965  0.894      0.856   0.936         0.523       0.894              0.900           0.888
+17      video  lstm_autoencoder  0.955  0.962  0.886      0.884   0.888         0.523       0.885              0.903           0.868
+18      video    supervised_gbm  0.962  0.972  0.832      0.723   0.979         0.523       0.901              0.907           0.895
+19      video          ensemble  0.964  0.971  0.893      0.867   0.920         0.523       0.903              0.924           0.884

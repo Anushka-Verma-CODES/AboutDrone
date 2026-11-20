@@ -1,8 +1,9 @@
 """Extra figures / checks after training.
 
 1. Example synthetic trajectories (one per anomaly type) coloured by score.
-2. Real DUT video tracks: score distribution and false alarm rate, i.e. how
-   often the model fires on ordinary drone flights it has never seen.
+2. Held-out DUT test videos: false-alarm rate on the real tracks, recall on
+   anomalies injected into them, and the same with Kalman smoothing switched
+   off (ablation). Uses the video operating point of each model.
 3. Example telemetry flights (normal vs anomalous) with labelled ranges.
 
     python -m src.anomaly.report
@@ -26,6 +27,7 @@ FIG.mkdir(parents=True, exist_ok=True)
 
 
 def synthetic_examples(scorer):
+    scorer.use(source="synthetic")
     rng = np.random.default_rng(SEED + 99)
     kinds = ["none"] + ANOMALY_TYPES
     fig, axes = plt.subplots(2, len(kinds), figsize=(3.2 * len(kinds), 6.5))
@@ -41,7 +43,7 @@ def synthetic_examples(scorer):
             ps[a:a + 30] = np.fmax(seg, si)
         ax = axes[0, j]
         sc = ax.scatter(tr["u"], tr["v"], c=ps, cmap="RdYlGn_r", s=5,
-                        vmin=np.nanpercentile(scorer.cal["calib_ref"][scorer.model], 50),
+                        vmin=scorer.typical_normal(),
                         vmax=scorer.threshold * 1.5 if scorer.threshold > 0 else None)
         ax.set_title(k)
         ax.set_aspect("equal", adjustable="datalim")
@@ -60,26 +62,41 @@ def synthetic_examples(scorer):
     plt.close(fig)
 
 
+def _video_stats(scorer, d):
+    s, f = scorer.score(d)
+    real = d["y"] == 0
+    groups = np.unique(d["group"][real])
+    return {
+        "real_windows": int(real.sum()),
+        "false_alarm_rate": float(f[real].mean()),
+        "real_tracks_flagged": int(sum(f[real & (d["group"] == g)].any() for g in groups)),
+        "real_tracks": int(len(groups)),
+        "injected_windows": int((~real).sum()),
+        "recall_injected": float(f[~real].mean()) if (~real).any() else None,
+        "recall_per_type": {c: float(f[d["cls"] == c].mean()) for c in np.unique(d["cls"][~real])},
+    }
+
+
 def real_tracks(scorer):
-    p = TRAJ_DATA / "dut_video_tracks.npz"
+    p = TRAJ_DATA / "video_test.npz"
     if not p.exists():
-        print("no real video tracks yet (run src.tracking.evaluate)")
+        print("no video test set yet (run src.trajectory.video)")
         return None
     d = dict(np.load(p, allow_pickle=True))
+    raw_p = TRAJ_DATA / "video_test_unsmoothed.npz"
+    raw = dict(np.load(raw_p, allow_pickle=True)) if raw_p.exists() else None
     out = {}
     for name in scorer.cal["thresholds"]:
-        scorer.model, scorer.threshold = name, scorer.cal["thresholds"][name]
-        s, f = scorer.score(d)
-        out[name] = {"windows": int(len(s)), "flag_rate": float(f.mean()),
-                     "tracks_flagged": int(sum(f[d["group"] == g].any() for g in np.unique(d["group"]))),
-                     "tracks": int(len(np.unique(d["group"])))}
+        scorer.use(name, "video")
+        out[name] = {"threshold": float(scorer.threshold), "smoothed": _video_stats(scorer, d)}
+        if raw is not None:
+            out[name]["unsmoothed"] = _video_stats(scorer, raw)
     (REPORTS / "real_video_flag_rate.json").write_text(json.dumps(out, indent=2))
     print(json.dumps(out, indent=2))
 
-    # restore selected model and plot its distribution vs synthetic normals
-    scorer.model = scorer.cal["selected"]
-    scorer.threshold = scorer.cal["thresholds"][scorer.model]
-    s_real, _ = scorer.score(d)
+    # selected model: held-out real video tracks vs synthetic test windows
+    scorer.use(scorer.cal["selected"], "video")
+    s_real, _ = scorer.score({k: v[d["y"] == 0] for k, v in d.items()})
     syn = dict(np.load(TRAJ_DATA / "synthetic_test.npz", allow_pickle=True))
     s_syn, _ = scorer.score(syn)
     plt.figure(figsize=(6.5, 3.8))
@@ -87,8 +104,8 @@ def real_tracks(scorer):
     bins = np.linspace(lo, hi, 60)
     plt.hist(s_syn[syn["y"] == 0], bins, density=True, alpha=0.5, label="synthetic normal")
     plt.hist(s_syn[syn["y"] == 1], bins, density=True, alpha=0.5, label="synthetic anomalous")
-    plt.hist(s_real, bins, density=True, histtype="step", lw=2, color="k", label="real DUT video tracks")
-    plt.axvline(scorer.threshold, color="r", ls="--", label="threshold")
+    plt.hist(s_real, bins, density=True, histtype="step", lw=2, color="k", label="real DUT test-video tracks")
+    plt.axvline(scorer.threshold, color="r", ls="--", label="video threshold")
     plt.legend(fontsize=8)
     plt.title(f"{scorer.model}: real video tracks vs synthetic")
     plt.tight_layout()
@@ -101,6 +118,7 @@ def telemetry_examples(scorer):
     p = TRAJ_DATA / "telemetry_test.npz"
     if not p.exists():
         return
+    scorer.use(scorer.cal["selected"], "telemetry")
     d = dict(np.load(p, allow_pickle=True))
     s, _ = scorer.score(d)
     groups = np.unique(d["group"])

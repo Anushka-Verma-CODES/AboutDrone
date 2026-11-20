@@ -1,11 +1,20 @@
 """Train and evaluate the trajectory anomaly models.
 
-Unsupervised models are fitted on NORMAL windows only (synthetic + telemetry
-train splits). The decision threshold of each model is the F1-optimal point
-on the validation split; test splits are never touched until the end.
+Unsupervised models are fitted on NORMAL windows only: synthetic, telemetry
+and real DUT video tracks (train videos only). Thresholds are picked on the
+validation splits; test splits are never touched until the end.
+
+Operating points:
+- global: F1-optimal on the pooled synthetic + telemetry validation set.
+- per source (used by the pipeline): F1-optimal on that source's validation
+  set for synthetic and telemetry; for video, the score that gives a fixed
+  false-alarm rate (VIDEO_FPR) on the real validation-video tracks, because
+  the anomaly share of the injected video set is arbitrary.
 
     python -m src.anomaly.train
+    python -m src.anomaly.train --ablation-no-video   # same, without real video in training
 """
+import argparse
 import json
 import pickle
 
@@ -29,6 +38,9 @@ FIG = REPORTS / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 FIG.mkdir(parents=True, exist_ok=True)
 MAX_PER_SOURCE = 80000
+VIDEO_WEIGHT = 0.10     # share of the normal training windows that come from real video
+VIDEO_FPR = 0.05        # false-alarm budget on real video tracks
+NORMAL_CLASSES = ("none", "Normal", "real_video")
 
 
 def load(name):
@@ -86,22 +98,36 @@ class Percentile:
         return np.searchsorted(self.ref, s) / len(self.ref)
 
 
-def main():
+def main(video_in_training=True):
+    """video_in_training=False is an ablation: real video tracks are left out
+    of training, results go to anomaly_metrics_no_video_train.csv and no
+    model or figure is overwritten."""
     rng = np.random.default_rng(SEED)
     syn = {k: load(f"synthetic_{k}") for k in ("train", "val", "test")}
     tel = {k: load(f"telemetry_{k}") for k in ("train", "val", "test")}
+    vid = {k: load(f"video_{k}") for k in ("train", "val", "test")}
     have_tel = tel["train"] is not None
-    print("telemetry available:", have_tel)
+    have_vid = vid["train"] is not None
+    print("telemetry available:", have_tel, " real video available:", have_vid)
 
     train = cat(cap(syn["train"], MAX_PER_SOURCE, rng), cap(tel["train"], MAX_PER_SOURCE, rng) if have_tel else None)
+    video_reps = 0
+    if have_vid and video_in_training:
+        # few real windows next to ~145k others: repeat them so they make up
+        # about VIDEO_WEIGHT of the normal training data
+        n_norm = int((train["y"] == 0).sum())
+        video_reps = max(1, int(round(VIDEO_WEIGHT * n_norm / len(vid["train"]["y"]))))
+        train = cat(train, *[vid["train"]] * video_reps)
     val = cat(syn["val"], tel["val"] if have_tel else None)
     tests = {"synthetic": syn["test"]}
     if have_tel:
         tests["telemetry"] = tel["test"]
         tests["combined"] = cat(syn["test"], tel["test"])
+    if have_vid:
+        tests["video"] = vid["test"]
 
     normal = take(train, np.where(train["y"] == 0)[0])
-    print(f"train windows {len(train['y'])}  (normal {len(normal['y'])})  val {len(val['y'])}")
+    print(f"train windows {len(train['y'])}  (normal {len(normal['y'])}, real video x{video_reps})  val {len(val['y'])}")
 
     val_normal = take(val, np.where(val["y"] == 0)[0])
     models = {}
@@ -141,6 +167,11 @@ def main():
     src_val = {"synthetic": syn["val"], "telemetry": tel["val"] if have_tel else None}
     src_thr = {(src, n): best_threshold(v["y"], score(n, v))
                for src, v in src_val.items() if v is not None for n in names}
+    if have_vid:
+        src_val["video"] = vid["val"]
+        real = vid["val"]["y"] == 0
+        for n in names:
+            src_thr[("video", n)] = float(np.quantile(score(n, vid["val"])[real], 1 - VIDEO_FPR))
 
     # evaluation
     rows, per_type = [], []
@@ -155,10 +186,10 @@ def main():
                           "recall_src_thr": ms["recall"]})
             rows.append({"test_set": tname, "model": name, **m})
             curves[(tname, name)] = (d["y"], s)
-            if tname in ("synthetic", "telemetry"):
-                pred = s >= thresholds[name]
+            if tname in ("synthetic", "telemetry", "video"):
+                pred = s >= src_thr.get((tname, name), thresholds[name])   # per-source operating point
                 for c in np.unique(d["cls"]):
-                    if c in ("none", "Normal"):
+                    if c in NORMAL_CLASSES:
                         mask = d["y"] == 0
                         per_type.append({"test_set": tname, "model": name, "type": "normal (FPR)",
                                          "rate": float(pred[mask].mean()), "n": int(mask.sum())})
@@ -170,16 +201,25 @@ def main():
 
     res = pd.DataFrame(rows)
     pt = pd.DataFrame(per_type).drop_duplicates(["test_set", "model", "type"])
+    if not video_in_training:
+        res.to_csv(REPORTS / "anomaly_metrics_no_video_train.csv", index=False)
+        pt.to_csv(REPORTS / "anomaly_per_type_no_video_train.csv", index=False)
+        print(res.drop(columns=["n"]).round(3).to_string())
+        return
     res.to_csv(REPORTS / "anomaly_metrics.csv", index=False)
     pt.to_csv(REPORTS / "anomaly_per_type.csv", index=False)
     with pd.option_context("display.width", 200, "display.precision", 3):
         print(res.drop(columns=["n"]))
         print(pt.pivot_table(index=["test_set", "type"], columns="model", values="rate"))
 
-    # model used by the pipeline is chosen on validation, not test
-    val_ap = {n: average_precision_score(val["y"], score(n, val)) for n in names if n != "supervised_gbm"}
+    # model used by the pipeline is chosen on validation, not test: mean of
+    # the per-source validation AUPRCs, so the large sources do not dominate
+    val_ap_src = {n: {src: float(average_precision_score(v["y"], score(n, v)))
+                      for src, v in src_val.items() if v is not None}
+                  for n in names if n != "supervised_gbm"}
+    val_ap = {n: float(np.mean(list(d.values()))) for n, d in val_ap_src.items()}
     best = max(val_ap, key=val_ap.get)
-    print("selected model (val AUPRC):", best, {k: round(v, 3) for k, v in val_ap.items()})
+    print("selected model (mean per-source val AUPRC):", best, {k: round(v, 3) for k, v in val_ap.items()})
 
     # ---------------------------------------------------------- save
     joblib.dump(models["isolation_forest"], OUT / "isolation_forest.joblib")
@@ -198,8 +238,10 @@ def main():
     with open(OUT / "calibration.pkl", "wb") as f:
         pickle.dump(ref, f)
     (REPORTS / "anomaly_summary.json").write_text(json.dumps({
-        "selected_model": best, "val_auprc": val_ap,
+        "selected_model": best, "val_auprc_mean": val_ap, "val_auprc_per_source": val_ap_src,
         "thresholds": thresholds,
+        "source_thresholds": {f"{k[0]}/{k[1]}": v for k, v in src_thr.items()},
+        "video_fpr_budget": VIDEO_FPR, "video_train_repeats": video_reps,
         "train_windows": int(len(train["y"])), "train_normal_windows": int(len(normal["y"])),
     }, indent=2, default=float))
 
@@ -234,10 +276,12 @@ def main():
         bins = np.linspace(np.percentile(s, 0.5), np.percentile(s, 99.5), 60)
         plt.hist(s[y == 0], bins, alpha=0.6, density=True, label="normal")
         plt.hist(s[y == 1], bins, alpha=0.6, density=True, label="anomalous")
-        plt.axvline(thresholds[best], color="k", ls="--", label="threshold")
+        plt.axvline(src_thr.get((tname, best), thresholds[best]), color="k", ls="--", label="threshold")
         plt.legend(); plt.title(f"{best} scores - {tname}")
         plt.tight_layout(); plt.savefig(FIG / f"score_hist_{tname}.png", dpi=130); plt.close()
 
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--ablation-no-video", action="store_true")
+    main(video_in_training=not ap.parse_args().ablation_no_video)

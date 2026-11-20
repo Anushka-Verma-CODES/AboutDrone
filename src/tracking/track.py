@@ -7,6 +7,7 @@ import pandas as pd
 from ultralytics import YOLO
 
 from src.config import ROOT
+from src.tracking.smooth import smooth_track
 
 TRACKER_CFG = str(ROOT / "configs" / "bytetrack_drone.yaml")
 IMG_EXT = {".jpg", ".jpeg", ".png", ".bmp"}
@@ -72,8 +73,9 @@ def detect_only(source, weights, conf=0.1, imgsz=1280, device=0):
     return pd.DataFrame(rows, columns=["frame", "x1", "y1", "x2", "y2", "conf"])
 
 
-def tracks_to_segments(df, fps, min_len=15):
-    """Convert tracker output into trajectory dicts for the feature code."""
+def tracks_to_segments(df, fps, min_len=15, smooth=True):
+    """Convert tracker output into trajectory dicts for the feature code.
+    With smooth=True the box centre and size are Kalman/RTS smoothed."""
     out = {}
     for tid, g in df.groupby("track_id"):
         if len(g) < min_len:
@@ -81,11 +83,11 @@ def tracks_to_segments(df, fps, min_len=15):
         g = g.sort_values("frame")
         w = (g.x2 - g.x1).to_numpy()
         h = (g.y2 - g.y1).to_numpy()
-        out[int(tid)] = {
-            "frame": g.frame.to_numpy(),
-            "t": g.frame.to_numpy() / fps,
-            "u": ((g.x1 + g.x2) / 2).to_numpy(),
-            "v": -((g.y1 + g.y2) / 2).to_numpy(),    # image y points down
-            "scale": np.sqrt(np.clip(w * h, 1, None)),
-        }
+        t = g.frame.to_numpy() / fps
+        u = ((g.x1 + g.x2) / 2).to_numpy()
+        v = -((g.y1 + g.y2) / 2).to_numpy()          # image y points down
+        scale = np.sqrt(np.clip(w * h, 1, None))
+        if smooth:
+            u, v, scale = smooth_track(t, u, v, scale)
+        out[int(tid)] = {"frame": g.frame.to_numpy(), "t": t, "u": u, "v": v, "scale": scale}
     return out

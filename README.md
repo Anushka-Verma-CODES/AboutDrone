@@ -4,7 +4,7 @@ Video in, flagged drone trajectories out:
 
 ```
 Video ─► YOLO11 drone detector ─► ByteTrack ─► trajectory (cx, cy, size, t)
-      ─► resample 10 Hz, 3 s windows ─► unit-free kinematic features
+      ─► Kalman / RTS smoothing ─► resample 10 Hz, 3 s windows ─► unit-free kinematic features
       ─► anomaly model (Isolation Forest / One-Class SVM / LSTM autoencoder / ensemble)
       ─► per-window score + reason ─► per-track verdict ─► Streamlit demo
 ```
@@ -23,12 +23,34 @@ produce comparable speeds, accelerations and turn rates.
 
 | Source | u, v | scale | Labels |
 |---|---|---|---|
-| Video tracks (DUT Anti-UAV) | bbox centre in px, y flipped | sqrt(bbox area) | none (real-world check) |
+| Video tracks (DUT Anti-UAV, 20 videos split 12/4/4 by video) | bbox centre in px, y flipped, Kalman-smoothed | sqrt(bbox area) | train: assumed normal; val/test: real tracks + anomalies injected into copies of them |
 | UAV-SEAD telemetry | local position projected onto a vertical plane at a random camera azimuth | 0.5 m | annotated anomaly time ranges |
 | Synthetic | generated in body lengths | 1 | injected anomaly intervals, per type |
 
 Anomaly types in the synthetic set: `zigzag`, `dive`, `speed_burst`,
 `reversal`, `circling`, `jump` (tracker / estimator glitch).
+
+**Real video in training.** The unsupervised models are fitted on normal
+windows from all three sources. The 12 training videos give only ~3k windows,
+so they are repeated to make up ~10 % of the normal training data. This
+teaches the models what real detector tracks look like (residual jitter,
+size changes, camera motion).
+
+**Labelled video test set.** The DUT videos have no anomaly labels, so the
+six anomaly types are injected into copies of the real val/test tracks: the
+anomaly's displacement is added on top of the real motion, keeping the
+detector noise. Untouched tracks stay as normal examples.
+
+**Kalman smoothing.** Detector boxes jitter by a few pixels per frame, which
+becomes fake acceleration and jerk after differentiation. Each pixel track is
+smoothed with a constant-velocity Kalman filter + RTS smoother in
+body-length units (`src/tracking/smooth.py`) before features are computed.
+
+**Operating points.** Each source gets its own threshold, picked on its own
+validation set: F1-optimal for synthetic and telemetry, and a 5 % false-alarm
+budget on real tracks for video (the anomaly share of the injected set is
+arbitrary, so F1 there would be meaningless). The video pipeline uses the
+video threshold (`--threshold-source` to change it).
 
 ### Features (per 3 s window, 10 Hz)
 
@@ -76,10 +98,12 @@ python -m src.data.download --what all --normal 300   # datasets
 python -m src.detection.prepare                         # YOLO + crop datasets
 python -m src.trajectory.synth                          # synthetic trajectories
 python -m src.trajectory.telemetry                      # UAV-SEAD -> windows
-python -m src.detection.train --epochs 20 --imgsz 960   # detector + classifier
-python -m src.tracking.evaluate                         # tracking metrics + real tracks
+python -m src.detection.train --epochs 20 --imgsz 960 --skip-classifier   # detector
+python -m src.detection.classifier_eval                 # classifier, leakage-free splits
+python -m src.tracking.evaluate                         # tracking metrics + video trajectories
 python -m src.anomaly.train                             # anomaly models
-python -m src.anomaly.report                            # figures on real tracks
+python -m src.anomaly.train --ablation-no-video         # optional: without real video in training
+python -m src.anomaly.report                            # figures, held-out video check
 streamlit run app/streamlit_app.py                      # demo
 ```
 
@@ -95,8 +119,8 @@ python -m src.pipeline --source my_video.mp4 --out outputs/my_video
 configs/      ByteTrack settings for small, fast targets
 src/data/     dataset download
 src/detection prepare YOLO data, train + evaluate detector and classifier
-src/tracking/ detection + tracking, MOT evaluation on DUT videos
-src/trajectory/ shared features, synthetic generator, telemetry conversion
+src/tracking/ detection + tracking, Kalman smoothing, MOT evaluation on DUT videos
+src/trajectory/ shared features, synthetic generator, telemetry and video conversion
 src/anomaly/  models, training, evaluation
 src/pipeline.py  end-to-end inference and annotated video
 app/          Streamlit demo
@@ -120,13 +144,24 @@ Hardware: single RTX 5050 Laptop GPU (8 GB).
 DUT is the harder set: drones are often a few pixels wide against cluttered
 backgrounds. Training curves and PR plots are in `models/runs/detector/`.
 
-### Drone-model classifier (VisioDECT crops, 6 classes)
+### Drone-model classifier (VisioDECT crops, 6 classes, YOLO11s-cls, ImageNet init)
 
-Top-1 accuracy **0.999** on 2,907 test crops. The ImageNet `yolo11n-cls`
-weights could not be downloaded, so the classifier (`yolo11s-cls`) was
-initialised from the trained drone detector's backbone instead. Crops of the
-same drone model come from the same recording sessions, so this score is
-optimistic for unseen footage.
+VisioDECT images are consecutive video frames (1,200 numbered frames per
+drone model and weather), so a random split puts near-identical frames in
+train and test. Three protocols, same model and settings
+(`src/detection/classifier_eval.py`):
+
+| Split | Test crops | Top-1 |
+|---|---|---|
+| Random image split (leaky) | 2,907 | 0.999 |
+| Frame blocks: 100-frame blocks, 8/2/2 per sequence, 5-frame gap at block edges | 2,990 | **0.988** |
+| Cross-weather: train on 2 scenarios, test on the 3rd (mean of 3 folds) | 5,566-6,940 per fold | **0.794** |
+| - test cloudy / evening / sunny | | 0.703 / 0.844 / 0.835 |
+
+Within the same recording conditions the classifier is reliable (0.988).
+On unseen weather it drops to ~0.79, so lighting and background still carry
+a lot of the signal. The frame-block model is the one saved in
+`models/classifier/best.pt`.
 
 ### Tracking (ByteTrack on the 20 DUT tracking videos)
 
@@ -140,53 +175,75 @@ becomes tiny or passes clutter, and a new ID is started afterwards
 
 ### Trajectory anomaly detection
 
-Thresholds are F1-optimal on the validation split; the pipeline model is
-chosen by validation AUPRC (Isolation Forest). The supervised gradient
-boosting model uses anomaly labels and is only a reference upper bound.
+Each source uses its own operating point picked on its validation set (see
+above). The pipeline model is chosen by the mean of the per-source validation
+AUPRCs: **ensemble (IF + LSTM autoencoder)**. The supervised gradient boosting
+model sees anomaly labels and is only a reference.
 
 | Test set | Model | AUROC | AUPRC | F1 | Precision | Recall |
 |---|---|---|---|---|---|---|
-| Synthetic | Isolation Forest | 0.984 | 0.918 | 0.868 | 0.809 | 0.936 |
-| Synthetic | One-Class SVM | 0.979 | 0.914 | 0.871 | 0.825 | 0.922 |
-| Synthetic | LSTM autoencoder | 0.975 | 0.923 | 0.829 | 0.769 | 0.899 |
-| Synthetic | Ensemble (IF + LSTM) | 0.985 | 0.934 | 0.857 | 0.797 | 0.926 |
-| Synthetic | *Supervised GBM* | *0.992* | *0.972* | *0.922* | *0.897* | *0.948* |
-| UAV-SEAD | Isolation Forest | 0.817 | 0.378 | 0.263 | 0.601 | 0.168 |
-| UAV-SEAD | One-Class SVM | 0.430 | 0.216 | 0.242 | 0.729 | 0.145 |
-| UAV-SEAD | LSTM autoencoder | 0.845 | 0.430 | 0.198 | 0.822 | 0.113 |
-| UAV-SEAD | Ensemble (IF + LSTM) | 0.839 | 0.427 | 0.219 | 0.804 | 0.127 |
-| UAV-SEAD | *Supervised GBM* | *0.799* | *0.363* | *0.354* | *0.400* | *0.318* |
+| Synthetic | Isolation Forest | 0.982 | 0.909 | 0.871 | 0.854 | 0.889 |
+| Synthetic | One-Class SVM | 0.972 | 0.896 | 0.860 | 0.854 | 0.865 |
+| Synthetic | LSTM autoencoder | 0.975 | 0.926 | 0.876 | 0.916 | 0.840 |
+| Synthetic | **Ensemble** | 0.984 | 0.933 | 0.885 | 0.892 | 0.878 |
+| Synthetic | *Supervised GBM* | *0.992* | *0.971* | *0.927* | *0.945* | *0.909* |
+| UAV-SEAD | Isolation Forest | 0.806 | 0.367 | 0.363 | 0.259 | 0.608 |
+| UAV-SEAD | One-Class SVM | 0.398 | 0.195 | 0.166 | 0.091 | 1.000 |
+| UAV-SEAD | LSTM autoencoder | 0.846 | 0.426 | 0.406 | 0.276 | 0.763 |
+| UAV-SEAD | **Ensemble** | 0.836 | 0.425 | 0.389 | 0.273 | 0.680 |
+| UAV-SEAD | *Supervised GBM* | *0.780* | *0.341* | *0.325* | *0.231* | *0.548* |
+| DUT video (held-out) | Isolation Forest | 0.980 | 0.984 | 0.925 | 0.909 | 0.941 |
+| DUT video (held-out) | One-Class SVM | 0.966 | 0.973 | 0.910 | 0.921 | 0.900 |
+| DUT video (held-out) | LSTM autoencoder | 0.969 | 0.976 | 0.919 | 0.936 | 0.902 |
+| DUT video (held-out) | **Ensemble** | 0.977 | 0.982 | 0.930 | 0.954 | 0.906 |
+| DUT video (held-out) | *Supervised GBM* | *0.965* | *0.978* | *0.915* | *0.919* | *0.911* |
 
-With a threshold tuned on UAV-SEAD validation alone, recall on UAV-SEAD rises
-to 0.68 (IF) / 0.78 (LSTM-AE) at F1 0.37 / 0.40 (`*_src_thr` columns of
-`reports/anomaly_metrics.csv`).
+Notes:
+- UAV-SEAD with its own threshold: the ensemble finds 68 % of anomalous
+  windows (12 % with the single global threshold used before), at the cost
+  of an 18 % false-alarm rate on normal flights. The OCSVM collapses to
+  "flag everything" there and should not be used for telemetry.
+- The video test set is ~52 % injected anomalies, which inflates AUPRC and
+  F1. The meaningful video numbers are: **4.8 % false alarms on real tracks
+  and 91 % recall on injected anomalies** (ensemble, 4 unseen videos).
 
-Isolation Forest detection rate per anomaly type:
+Detection rate per anomaly type (ensemble, per-source threshold):
 
-| Synthetic type | Rate | | UAV-SEAD class | Rate |
-|---|---|---|---|---|
-| dive | 0.99 | | External Position | 0.23 |
-| zigzag | 0.98 | | Global Position | 0.17 |
-| circling | 0.96 | | Mechanical | 0.03 |
-| jump | 0.94 | | Altitude | 0.03 |
-| speed_burst | 0.92 | | normal (false-positive rate) | 0.011 |
-| reversal | 0.81 | | | |
-| normal (false-positive rate) | 0.027 | | | |
+| Synthetic | Rate | UAV-SEAD | Rate | DUT video (injected) | Rate |
+|---|---|---|---|---|---|
+| zigzag | 0.94 | External Position | 0.84 | circling | 1.00 |
+| dive | 0.93 | Global Position | 0.52 | zigzag | 0.99 |
+| jump | 0.91 | Mechanical | 0.42 | dive | 0.97 |
+| circling | 0.87 | Altitude | 0.32 | speed_burst | 0.94 |
+| speed_burst | 0.82 | | | jump | 0.93 |
+| reversal | 0.76 | | | reversal | 0.59 |
+| normal (false alarms) | 0.013 | normal (false alarms) | 0.18 | normal (false alarms) | 0.048 |
+
+#### What the improvements changed (held-out DUT test videos, ensemble)
+
+| Setting | AUROC | False alarms on real tracks | Recall (injected) |
+|---|---|---|---|
+| No smoothing (same models, same threshold) | 0.963 | 23.3 % | 0.95 |
+| Smoothing, no real video in training | 0.964 | 8.0 % | 0.88 |
+| **Smoothing + real video in training** | **0.977** | **4.8 %** | **0.91** |
+
+Before these changes the Isolation Forest flagged 32 % of all windows on the
+DUT videos. Smoothing removes most of the detector-jitter false alarms;
+adding real video tracks to training lifts the ranking quality on video
+(AUROC 0.964 to 0.977) while synthetic and telemetry AUROC change by at most
+0.01 for IF, LSTM-AE and the ensemble (0.03 for the OCSVM)
+(`reports/anomaly_metrics_no_video_train.csv`,
+`reports/real_video_flag_rate.json`).
 
 Reading the numbers: anomalies that change *how the drone moves* (synthetic
-manoeuvres, position-estimator faults) are found well from the trajectory
-alone. Mechanical and altitude faults in UAV-SEAD barely change the flight
-path during the labelled interval, so a camera-only view cannot see them;
-this is a property of the data, not of the threshold.
+manoeuvres, injected video anomalies, position-estimator faults) are found
+well from the trajectory alone. Mechanical and altitude faults in UAV-SEAD
+barely change the flight path, so a camera-only view finds them only at a
+high false-alarm cost; this is a property of the data, not of the threshold.
+Slow `reversal` manoeuvres are the hardest motion anomaly.
 
-On the 50 real DUT video tracks (no anomaly labels) the Isolation Forest
-flags 32 % of windows, the LSTM autoencoder 19 %. Real pixel tracks carry
-detector jitter and camera motion that neither training source has, so these
-flags should be read as "unusual motion" rather than confirmed anomalies
-(`reports/figures/real_vs_synthetic_scores.png`).
-
-Figures: `reports/figures/` (ROC / PR curves, score histograms, LSTM loss,
-example trajectories).
+Figures: `reports/figures/` (ROC / PR curves for every test set, score
+histograms, LSTM loss, example trajectories, real vs synthetic scores).
 
 ## Limitations
 
@@ -196,7 +253,11 @@ example trajectories).
   compensated; DUT videos are mostly from a static or slowly moving camera.
 - Pixel-to-body-length normalisation assumes the box size tracks the drone's
   true size; very small boxes (< 10 px) make speed estimates noisy.
-- Real video tracks have no anomaly labels; they are used to check the false
-  alarm rate on (presumably normal) flights, not to measure recall.
+- Real video tracks have no anomaly labels. Video recall is measured on
+  anomalies injected into real tracks, which follow the synthetic anomaly
+  types; real-world video anomalies may look different. The DUT flights are
+  assumed to be normal.
+- Only 20 DUT videos exist, so the video test set is 4 videos (15 tracks);
+  its numbers have wide error bars.
 - UAV-SEAD anomalies are state-estimation faults. Only the part of a fault
   that shows up in the estimated position is visible to these features.

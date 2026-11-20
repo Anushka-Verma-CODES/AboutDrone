@@ -23,7 +23,11 @@ ANOM = MODELS / "anomaly"
 
 
 class AnomalyScorer:
-    def __init__(self, model=None):
+    """Loads the trained anomaly models. `source` picks the operating point
+    (threshold) tuned for that kind of input: "video" (default, what the
+    pipeline sees), "telemetry", "synthetic", or "global"."""
+
+    def __init__(self, model=None, source="video"):
         with open(ANOM / "calibration.pkl", "rb") as f:
             self.cal = pickle.load(f)
         self.model = model or self.cal["selected"]
@@ -32,7 +36,23 @@ class AnomalyScorer:
         self.gbm = joblib.load(ANOM / "supervised_gbm.joblib")
         st = torch.load(ANOM / "lstm_autoencoder.pt", map_location="cpu", weights_only=False)
         self.lstm = LSTMAEDetector.from_state(st, device="cpu")   # tiny model, keep GPU for YOLO
-        self.threshold = self.cal["thresholds"][self.model]
+        self.use(self.model, source)
+
+    def threshold_for(self, model, source):
+        return self.cal.get("source_thresholds", {}).get(f"{source}/{model}", self.cal["thresholds"][model])
+
+    def use(self, model=None, source=None):
+        """Switch model and/or operating point."""
+        self.model = model or self.model
+        self.source = source or getattr(self, "source", "video")
+        self.threshold = self.threshold_for(self.model, self.source)
+        return self
+
+    def typical_normal(self):
+        """Median score of normal validation windows (colour scale baseline).
+        The ensemble score is already a percentile, so its median is 0.5."""
+        ref = self.cal["calib_ref"].get(self.model)
+        return 0.5 if ref is None else float(np.percentile(ref, 50))
 
     def _pct(self, name, s):
         ref = self.cal["calib_ref"][name]
@@ -116,7 +136,7 @@ def color_for(score, thr, lo):
 
 def render(source, tracks_df, windows, scorer, fps, out_path, trail=60):
     lut = frame_scores(windows, fps) if len(windows) else {}
-    lo = float(np.percentile(scorer.cal["calib_ref"][scorer.model], 50))
+    lo = scorer.typical_normal()
     thr = scorer.threshold
     by_frame = {f: g for f, g in tracks_df.groupby("frame")}
     history = {}
@@ -144,14 +164,14 @@ def render(source, tracks_df, windows, scorer, fps, out_path, trail=60):
 
 
 def run(source, out_dir, weights=DEFAULT_WEIGHTS, conf=0.1, imgsz=1280, model=None,
-        max_frames=None, render_video=True, device=0):
+        max_frames=None, render_video=True, device=0, threshold_source="video"):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     fps = video_fps(source)
     tr = track(source, weights, conf=conf, imgsz=imgsz, max_frames=max_frames, device=device)
     tr.to_csv(out_dir / "tracks.csv", index=False)
     segs = tracks_to_segments(tr, fps)
-    scorer = AnomalyScorer(model)
+    scorer = AnomalyScorer(model, threshold_source)
     win, per_track = score_segments(segs, scorer)
     win.to_csv(out_dir / "windows.csv", index=False)
     per_track.to_csv(out_dir / "track_summary.csv", index=False)
@@ -159,7 +179,7 @@ def run(source, out_dir, weights=DEFAULT_WEIGHTS, conf=0.1, imgsz=1280, model=No
         render(source, tr, win, scorer, fps, out_dir / "annotated.mp4")
     (out_dir / "meta.json").write_text(json.dumps(
         {"source": str(source), "fps": fps, "model": scorer.model,
-         "threshold": scorer.threshold, "n_tracks": int(tr.track_id.nunique()) if len(tr) else 0},
+         "threshold": scorer.threshold, "threshold_source": scorer.source, "n_tracks": int(tr.track_id.nunique()) if len(tr) else 0},
         indent=2, default=float))
     return tr, win, per_track
 
@@ -172,6 +192,10 @@ if __name__ == "__main__":
     ap.add_argument("--conf", type=float, default=0.1)
     ap.add_argument("--imgsz", type=int, default=1280)
     ap.add_argument("--model", default=None)
+    ap.add_argument("--threshold-source", default="video",
+                    choices=["video", "telemetry", "synthetic", "global"],
+                    help="which validation set the decision threshold was tuned on")
     a = ap.parse_args()
-    _, _, summary = run(a.source, a.out, a.weights, a.conf, a.imgsz, a.model)
+    _, _, summary = run(a.source, a.out, a.weights, a.conf, a.imgsz, a.model,
+                        threshold_source=a.threshold_source)
     print(summary.to_string(index=False))

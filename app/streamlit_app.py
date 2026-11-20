@@ -96,7 +96,7 @@ with tab_run:
         if "result" in st.session_state:
             out, tracks, windows, summary, mname = st.session_state["result"]
             out = Path(out)
-            thr = cal["thresholds"][mname]
+            thr = cal.get("source_thresholds", {}).get(f"video/{mname}", cal["thresholds"][mname])
             left, right = st.columns([3, 2])
             with left:
                 vid = out / "annotated.mp4"
@@ -133,7 +133,7 @@ with tab_synth:
 
         with open(pk, "rb") as f:
             tracks = pickle.load(f)
-        scorer = AnomalyScorer()
+        scorer = AnomalyScorer(source="synthetic")
         labels = [f"#{i}: {t['behaviour']} / {t['anomaly'] if isinstance(t['anomaly'], str) else '+'.join(t['anomaly'])}"
                   for i, t in enumerate(tracks)]
         i = st.selectbox("Trajectory", range(len(tracks)), format_func=lambda k: labels[k])
@@ -164,7 +164,18 @@ with tab_results:
     cls = REPORTS / "classifier_metrics.json"
     if cls.exists():
         st.subheader("Drone-model classifier (VisioDECT test crops)")
-        st.json(json.loads(cls.read_text()))
+        c = json.loads(cls.read_text())
+        if "block_split" in c:
+            rows = [("Random image split (near-duplicate frames leak)", c["random_split"]),
+                    ("Frame-block split", c["block_split"])]
+            rows += [(f"Cross-weather, test on {k[5:]}", v)
+                     for k, v in c["cross_weather"].items() if k.startswith("test_")]
+            st.dataframe(pd.DataFrame([{"protocol": n, "top-1": r["top1"], "top-5": r["top5"],
+                                        "test crops": r["sizes"]["test"]} for n, r in rows]),
+                         hide_index=True)
+            st.caption(f"Cross-weather mean top-1: {c['cross_weather']['mean_top1']:.3f}")
+        else:
+            st.json(c)
     trk = REPORTS / "tracking_metrics.csv"
     if trk.exists():
         st.subheader("Tracking (DUT Anti-UAV videos)")

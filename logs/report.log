@@ -1,32 +1,177 @@
 {
   "isolation_forest": {
-    "windows": 1422,
-    "flag_rate": 0.3241912798874824,
-    "tracks_flagged": 42,
-    "tracks": 50
+    "threshold": 0.535435615769717,
+    "smoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.10275689223057644,
+      "real_tracks_flagged": 7,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.9406392694063926,
+      "recall_per_type": {
+        "circling": 0.9868421052631579,
+        "dive": 1.0,
+        "jump": 0.9722222222222222,
+        "reversal": 0.7205882352941176,
+        "speed_burst": 0.9493670886075949,
+        "zigzag": 1.0
+      }
+    },
+    "unsmoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.22807017543859648,
+      "real_tracks_flagged": 10,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.9634703196347032,
+      "recall_per_type": {
+        "circling": 1.0,
+        "dive": 1.0,
+        "jump": 0.9722222222222222,
+        "reversal": 0.8088235294117647,
+        "speed_burst": 0.9873417721518988,
+        "zigzag": 1.0
+      }
+    }
   },
   "one_class_svm": {
-    "windows": 1422,
-    "flag_rate": 0.21237693389592124,
-    "tracks_flagged": 37,
-    "tracks": 50
+    "threshold": 2.7964991595775572,
+    "smoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.08521303258145363,
+      "real_tracks_flagged": 8,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.8995433789954338,
+      "recall_per_type": {
+        "circling": 0.9342105263157895,
+        "dive": 1.0,
+        "jump": 0.9722222222222222,
+        "reversal": 0.5882352941176471,
+        "speed_burst": 0.9367088607594937,
+        "zigzag": 0.9444444444444444
+      }
+    },
+    "unsmoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.13032581453634084,
+      "real_tracks_flagged": 10,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.9155251141552512,
+      "recall_per_type": {
+        "circling": 0.9736842105263158,
+        "dive": 1.0,
+        "jump": 0.9722222222222222,
+        "reversal": 0.5735294117647058,
+        "speed_burst": 0.9746835443037974,
+        "zigzag": 0.9722222222222222
+      }
+    }
   },
   "lstm_autoencoder": {
-    "windows": 1422,
-    "flag_rate": 0.19057665260196907,
-    "tracks_flagged": 33,
-    "tracks": 50
+    "threshold": 0.4067228138446808,
+    "smoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.06766917293233082,
+      "real_tracks_flagged": 7,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.9018264840182648,
+      "recall_per_type": {
+        "circling": 1.0,
+        "dive": 0.9577464788732394,
+        "jump": 0.9305555555555556,
+        "reversal": 0.5441176470588235,
+        "speed_burst": 0.9620253164556962,
+        "zigzag": 0.9861111111111112
+      }
+    },
+    "unsmoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.24561403508771928,
+      "real_tracks_flagged": 12,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.9360730593607306,
+      "recall_per_type": {
+        "circling": 1.0,
+        "dive": 0.9859154929577465,
+        "jump": 0.9305555555555556,
+        "reversal": 0.7205882352941176,
+        "speed_burst": 0.9746835443037974,
+        "zigzag": 0.9861111111111112
+      }
+    }
   },
   "supervised_gbm": {
-    "windows": 1422,
-    "flag_rate": 0.5295358649789029,
-    "tracks_flagged": 47,
-    "tracks": 50
+    "threshold": 0.7402111096902855,
+    "smoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.08771929824561403,
+      "real_tracks_flagged": 7,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.910958904109589,
+      "recall_per_type": {
+        "circling": 0.9736842105263158,
+        "dive": 1.0,
+        "jump": 0.9583333333333334,
+        "reversal": 0.6323529411764706,
+        "speed_burst": 0.8987341772151899,
+        "zigzag": 0.9861111111111112
+      }
+    },
+    "unsmoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.16541353383458646,
+      "real_tracks_flagged": 8,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.9452054794520548,
+      "recall_per_type": {
+        "circling": 0.9736842105263158,
+        "dive": 1.0,
+        "jump": 0.9861111111111112,
+        "reversal": 0.6911764705882353,
+        "speed_burst": 1.0,
+        "zigzag": 1.0
+      }
+    }
   },
   "ensemble": {
-    "windows": 1422,
-    "flag_rate": 0.23066104078762306,
-    "tracks_flagged": 36,
-    "tracks": 50
+    "threshold": 0.9719213581622826,
+    "smoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.047619047619047616,
+      "real_tracks_flagged": 7,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.906392694063927,
+      "recall_per_type": {
+        "circling": 1.0,
+        "dive": 0.971830985915493,
+        "jump": 0.9305555555555556,
+        "reversal": 0.5882352941176471,
+        "speed_burst": 0.9367088607594937,
+        "zigzag": 0.9861111111111112
+      }
+    },
+    "unsmoothed": {
+      "real_windows": 399,
+      "false_alarm_rate": 0.23308270676691728,
+      "real_tracks_flagged": 11,
+      "real_tracks": 15,
+      "injected_windows": 438,
+      "recall_injected": 0.9474885844748858,
+      "recall_per_type": {
+        "circling": 1.0,
+        "dive": 1.0,
+        "jump": 0.9305555555555556,
+        "reversal": 0.7794117647058824,
+        "speed_burst": 0.9746835443037974,
+        "zigzag": 0.9861111111111112
+      }
+    }
   }
 }
