@@ -18,10 +18,22 @@ sys.path.insert(0, str(ROOT))
 
 from src.config import MODELS, OUTPUTS, REPORTS, TRAJ_DATA  # noqa: E402
 
-st.set_page_config(page_title="Drone Trajectory Anomaly Detection", layout="wide")
-st.title("Drone Detection, Tracking & Trajectory Anomaly Detection")
+st.set_page_config(page_title="Drone Trajectory Anomaly Detection", page_icon="🛸", layout="wide")
+st.markdown("""
+<style>
+.block-container {padding-top: 2rem; max-width: 1300px;}
+.hero {padding: 1.4rem 1.6rem; border-radius: 14px; margin-bottom: 1rem;
+       background: linear-gradient(120deg, #0f2027, #203a43 55%, #2c5364); color: #fff;}
+.hero h1 {margin: 0; font-size: 1.8rem; color: #fff;}
+.hero p {margin: .3rem 0 0; opacity: .8;}
+div[data-testid="stMetric"] {background: rgba(128,128,128,.10); border-radius: 12px; padding: .8rem 1rem;}
+button[data-baseweb="tab"] {font-weight: 600;}
+</style>
+<div class="hero"><h1>🛸 Drone Detection, Tracking &amp; Anomaly Detection</h1>
+<p>Detect drones in video, follow them across frames, and flag unusual flight behaviour.</p></div>
+""", unsafe_allow_html=True)
 
-tab_run, tab_synth, tab_results = st.tabs(["Analyse a video", "Synthetic trajectories", "Model results"])
+tab_run, tab_synth, tab_results = st.tabs(["🎥 Analyse a video", "📈 Synthetic trajectories", "📊 Model results"])
 
 
 def ffmpeg_h264(src: Path) -> Path:
@@ -97,6 +109,12 @@ with tab_run:
             out, tracks, windows, summary, mname = st.session_state["result"]
             out = Path(out)
             thr = cal.get("source_thresholds", {}).get(f"video/{mname}", cal["thresholds"][mname])
+            n_flag = int(windows.anomalous.sum()) if len(windows) else 0
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Tracks", len(summary))
+            m2.metric("Windows scored", len(windows))
+            m3.metric("Flagged windows", n_flag)
+            m4.metric("Flag rate", f"{n_flag / len(windows):.0%}" if len(windows) else "–")
             left, right = st.columns([3, 2])
             with left:
                 vid = out / "annotated.mp4"
