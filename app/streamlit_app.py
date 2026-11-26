@@ -110,11 +110,34 @@ with tab_run:
             out = Path(out)
             thr = cal.get("source_thresholds", {}).get(f"video/{mname}", cal["thresholds"][mname])
             n_flag = int(windows.anomalous.sum()) if len(windows) else 0
-            m1, m2, m3, m4 = st.columns(4)
+            m0, m1, m2, m3, m4 = st.columns(5)
+            if "drone_model" in summary and len(summary):
+                main = summary.sort_values("duration_s", ascending=False).iloc[0]
+                m0.metric("Drone model", str(main.drone_model),
+                          f"{main.model_conf:.0%} confidence" if pd.notna(main.model_conf) else None,
+                          delta_color="off")
+            else:
+                m0.metric("Drone model", "–")
             m1.metric("Tracks", len(summary))
             m2.metric("Windows scored", len(windows))
             m3.metric("Flagged windows", n_flag)
             m4.metric("Flag rate", f"{n_flag / len(windows):.0%}" if len(windows) else "–")
+            if "drone_model" in summary and len(summary):
+                st.subheader("Identified drones")
+                cards = st.columns(min(len(summary), 4))
+                for k, r in enumerate(summary.itertuples()):
+                    with cards[k % len(cards)]:
+                        conf_txt = f"{r.model_conf:.0%}" if pd.notna(r.model_conf) else "–"
+                        st.markdown(f"**Track {r.track_id}** · {r.verdict}")
+                        st.markdown(f"### {r.drone_model}")
+                        if pd.notna(r.model_conf):
+                            st.progress(float(r.model_conf), text=f"confidence {conf_txt}")
+                        if r.runner_up:
+                            st.caption(f"Runner-up: {r.runner_up}")
+                st.caption("The classifier knows the six VisioDECT models (Anafi-Extended, DJIFPV, "
+                           "DJIPhantom, EFT-E410S, Mavic_Air, Mavic_Enterprise); drones of other types "
+                           "are mapped to the closest of these. Probabilities are averaged over up to "
+                           "12 crops per track.")
             left, right = st.columns([3, 2])
             with left:
                 vid = out / "annotated.mp4"

@@ -135,7 +135,8 @@ def color_for(score, thr, lo):
     return (0, int(255 * (1 - x)), int(255 * min(1, 2 * x)))
 
 
-def render(source, tracks_df, windows, scorer, fps, out_path, trail=60):
+def render(source, tracks_df, windows, scorer, fps, out_path, trail=60, labels=None):
+    labels = labels or {}
     lut = frame_scores(windows, fps) if len(windows) else {}
     lo = scorer.typical_normal()
     thr = scorer.threshold
@@ -153,7 +154,11 @@ def render(source, tracks_df, windows, scorer, fps, out_path, trail=60):
                 history.setdefault(r.track_id, []).append((c, s))
                 col = color_for(s, thr, lo)
                 cv2.rectangle(frame, (int(r.x1), int(r.y1)), (int(r.x2), int(r.y2)), col, 2)
-                tag = f"ID {r.track_id}" + ("" if np.isnan(s) else f"  {'ANOM' if s >= thr else 'ok'}")
+                tag = f"ID {r.track_id}"
+                if r.track_id in labels:
+                    tag += f" {labels[r.track_id]}"
+                if not np.isnan(s):
+                    tag += f"  {'ANOM' if s >= thr else 'ok'}"
                 cv2.putText(frame, tag, (int(r.x1), int(r.y1) - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.6, col, 2)
         for tid, pts in history.items():
             pts = pts[-trail:]
@@ -166,7 +171,8 @@ def render(source, tracks_df, windows, scorer, fps, out_path, trail=60):
 
 def run(source, out_dir, weights=DEFAULT_WEIGHTS, conf=0.1, imgsz=1280, model=None,
         max_frames=None, render_video=True, device=0, threshold_source="video",
-        camera_comp=True, tracker=DEFAULT_TRACKER, link=True, min_track_conf=MIN_TRACK_CONF):
+        camera_comp=True, tracker=DEFAULT_TRACKER, link=True, min_track_conf=MIN_TRACK_CONF,
+        classify=True):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     fps = video_fps(source)
@@ -184,10 +190,19 @@ def run(source, out_dir, weights=DEFAULT_WEIGHTS, conf=0.1, imgsz=1280, model=No
     segs = tracks_to_segments(tr, fps, cam=cam)
     scorer = AnomalyScorer(model, threshold_source)
     win, per_track = score_segments(segs, scorer)
+    labels = {}
+    if classify and len(per_track):
+        from src.detection.identify import DEFAULT_CLS_WEIGHTS, classify_tracks
+        if DEFAULT_CLS_WEIGHTS.exists():
+            ids = classify_tracks(source, tr[tr.track_id.isin(per_track.track_id)], device=device)
+            per_track = per_track.merge(ids, on="track_id", how="left")
+            cols = ["track_id", "drone_model", "model_conf", "runner_up"]
+            per_track = per_track[cols + [c for c in per_track.columns if c not in cols]]
+            labels = dict(zip(ids.track_id, ids.drone_model))
     win.to_csv(out_dir / "windows.csv", index=False)
     per_track.to_csv(out_dir / "track_summary.csv", index=False)
     if render_video:
-        render(source, tr, win, scorer, fps, out_dir / "annotated.mp4")
+        render(source, tr, win, scorer, fps, out_dir / "annotated.mp4", labels=labels)
     (out_dir / "meta.json").write_text(json.dumps(
         {"source": str(source), "fps": fps, "model": scorer.model,
          "threshold": scorer.threshold, "threshold_source": scorer.source,
@@ -212,8 +227,10 @@ if __name__ == "__main__":
     ap.add_argument("--no-camera-comp", action="store_true", help="skip camera motion compensation")
     ap.add_argument("--min-track-conf", type=float, default=MIN_TRACK_CONF,
                     help="drop tracks whose best detection is below this (0 = keep all)")
+    ap.add_argument("--no-classify", action="store_true", help="skip drone-model identification")
     a = ap.parse_args()
     _, _, summary = run(a.source, a.out, a.weights, a.conf, a.imgsz, a.model,
                         threshold_source=a.threshold_source, camera_comp=not a.no_camera_comp,
-                        tracker=a.tracker, link=not a.no_linking, min_track_conf=a.min_track_conf)
+                        tracker=a.tracker, link=not a.no_linking, min_track_conf=a.min_track_conf,
+                        classify=not a.no_classify)
     print(summary.to_string(index=False))
